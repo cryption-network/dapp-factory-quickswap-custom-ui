@@ -3,6 +3,7 @@ import { HttpProviderOptions } from "web3-core-helpers";
 import getRpcUrl from "./getRpcUrl";
 
 const RPC_URL = getRpcUrl();
+console.log({ RPC_URL });
 const httpProvider = new Web3.providers.HttpProvider(RPC_URL, {
   timeout: 10000,
 } as HttpProviderOptions);

@@ -8,3 +8,6 @@ export const getAddress = (address: Address, chainId: number): string => {
 export const getQuickswapSingleRewardFactory = (chainId: number) => {
   return getAddress(addresses.quickswapSingleRewardFactory, chainId);
 };
+export const getRouterAddress = (chainId: number) => {
+  return getAddress(addresses.router, chainId);
+};
