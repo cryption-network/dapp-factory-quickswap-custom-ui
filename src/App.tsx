@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Router, Route, Switch } from "react-router-dom";
 import { connectorLocalStorageKey, ConnectorNames } from "cryption-uikit-v2";
 import { Container, Stack, Button } from '@mui/material';
@@ -30,9 +30,19 @@ function App() {
       // TODO: Figure out an elegant way to listen for when the BinanceChain object is ready
       if (connectorId && connectorId) {
         login(connectorId);
+      } else {
+        // @ts-ignore
+        login("injected");
       }
     }
   }
+  useEffect(() => {
+    if (window && window.ethereum) {
+      window.ethereum.on("chainChanged", async () => {
+        window.location.reload();
+      });
+    }
+  }, []);
   return (
     <Container maxWidth="lg">
       <Stack direction="row" justifyContent="space-between" sx={{ marginBottom: '20px', marginTop: '20px' }}>
