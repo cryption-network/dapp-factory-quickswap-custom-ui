@@ -10,6 +10,7 @@ import useActiveWeb3React from "../../hooks";
 const TitleText = styled.p`
   color: #c7cad9;
   margin: 0;
+  font-family: Inter;
   font-size: 25px;
   font-weight: 700;
   line-height: 1.43;
@@ -19,30 +20,33 @@ const Card = styled.div`
   width: 100%;
   margin: 40px 0px;
   border-radius: 10px;
+  font-family: Inter;
   padding: 20px 20px;
   background-color: #1b1e29;
 `;
 function Home(props: any) {
   const { chainId, account } = useActiveWeb3React();
-  const getServiceId = (id: any) => {
-    if (id) {
-      props.history.push(`/farms/${id}`)
-    }
-  }
-  console.log({ chainId, account })
+  // const getServiceId = (id: any) => {
+  //   if (id) {
+  //     props.history.push(`/farms/${id}`)
+  //   }
+  // }
+  // console.log({ chainId, account })
   return (
     <div>
       <Card>
-        <Stack spacing={3} alignItems="center" justifyContent="center"> 
+        <Stack spacing={3} alignItems="center" justifyContent="center">
           <TitleText>
             Click on button below to create Quickswap Single Reward Farm Powered by DappFactoy
           </TitleText>
           <Button
             onClick={() => props.history.push('/create')}
             sx={{
-              background: '#448aff',
+              backgroundImage: 'linear-gradient(105deg,#448aff 3%,#004ce6)',
               color: '#ffffff',
               height: '48px',
+              fontFamily: 'Inter',
+              fontWeight:'700',
               padding: '6px 18px',
               marginBottom: '20px',
               borderRadius: '30px',
@@ -52,7 +56,14 @@ function Home(props: any) {
           </Button>
         </Stack>
       </Card>
-      <DisplayFarms account={account?.toString()} chainId={chainId || 80001} getServiceId={getServiceId} />
+      <DisplayFarms 
+        customgradient="linear-gradient(105deg,#448aff 3%,#004ce6)"
+        customPrimaryColor="#448aff"
+        account={account?.toString()} 
+        chainId={chainId || 80001} 
+        // implementationid={1}
+        // getServiceId={getServiceId} 
+      />
     </div>
   )
 }

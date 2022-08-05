@@ -28,6 +28,7 @@ const TitleText = styled.p`
   margin: 0;
   font-size: 35px;
   font-weight: 700;
+      font-family: Inter;
   line-height: 1.43;
   text-align: center;
 `;
@@ -35,6 +36,7 @@ const SubTitle = styled.p`
   color: #c7cad9;
   font-size: 20px;
   font-weight: 700;
+      font-family: Inter;
   line-height: 1.43;
   text-align: center;
   margin-top: 25px;
@@ -43,6 +45,7 @@ const SubTitle = styled.p`
 const Card = styled.div`
   width: 100%;
   margin-top: 30px;
+      font-family: Inter;
   border-radius: 10px;
   padding: 20px 20px;
   background-color: #1b1e29;
@@ -50,6 +53,7 @@ const Card = styled.div`
 
 const CssTextField = muiStyled(TextField)({
   '& MuiInputBase-input': {
+    fontFamily: 'Inter',
     color: '#c7cad9',
   },
   '& label.Mui-focused': {
@@ -57,6 +61,7 @@ const CssTextField = muiStyled(TextField)({
   },
   '& label.MuiFormLabel-root': {
     color: '#c7cad9',
+    fontFamily: 'Inter',
   },
   '& .MuiInput-underline:after': {
     borderBottomColor: '#c7cad9',
@@ -91,6 +96,7 @@ const InputWrapper = styled.div`
   position: relative;
   margin: 0;
   margin-top: 10px;
+  fontFamily: 'Inter',
 
   ${({ theme }) => theme.mediaQueries.sm} {
     width: 234px;
@@ -155,11 +161,10 @@ function CreateFarm(props: any) {
       symbol: "",
     },
   });
-  const { launchFarmOrPool, txnHash, txnError, pendingTxn } = useCreateFarm(1);
+  const { launchFarmOrPool, pendingTxn } = useCreateFarm(1);
   const { chainId, account } = useActiveWeb3React();
   const factoryContractAddress = getQuickswapSingleRewardFactory(chainId || 80001);
   const factoryContract = useQuikcswapSingleRewardContract();
-  console.log({ txnHash, txnError, pendingTxn })
   const launchFarm = async () => {
     const rewardToken = {
       address: farmData.rewardToken.address,
@@ -185,10 +190,9 @@ function CreateFarm(props: any) {
     );
     const routerAddress = getRouterAddress(chainId || 80001)
     try {
-      const check = await launchFarmOrPool(rewardToken, inputToken, "", 0, 0, "", "", "", "", routerAddress, rewardTokenAmountWei, null, 0, differenceInSecondsForRewardDuration);
-      console.log({ check })
+      await launchFarmOrPool(rewardToken, inputToken, "", 0, 0, "", "", "", "", routerAddress, rewardTokenAmountWei, null, 0, differenceInSecondsForRewardDuration);
     } catch (error) {
-      console.log('error', error)
+      console.error('error', error)
     }
   }
   const onCreateFarm = async () => {
@@ -323,7 +327,6 @@ function CreateFarm(props: any) {
         factoryContractAddress,
         feeManagerDetails.address
       );
-      console.log({ feeManagerAccountDetails })
       setFeeManagerDetails({
         name: feeManagerDetails.name,
         symbol: feeManagerDetails.symbol,
@@ -339,7 +342,6 @@ function CreateFarm(props: any) {
       getFees();
     }
   }, [account, chainId, factoryContract, factoryContractAddress, web3])
-  console.log({ allowanceAmount });
   return (
     <Container maxWidth="lg" sx={{ paddingTop: '30px' }}>
       <div>
@@ -350,6 +352,8 @@ function CreateFarm(props: any) {
             background: '#448aff',
             color: '#ffffff',
             height: '48px',
+            fontFamily: 'Inter',
+            fontWeight: '700',
             padding: '6px 8px',
             marginBottom: '20px',
             borderRadius: '30px'
@@ -518,6 +522,8 @@ function CreateFarm(props: any) {
                   height: '48px',
                   padding: '6px 8px',
                   borderRadius: '30px',
+                  fontFamily: 'Inter',
+                  fontWeight: '700',
                   border: '1px solid #448aff'
                 }}
               >
@@ -538,6 +544,8 @@ function CreateFarm(props: any) {
                   width: '200px',
                   height: '48px',
                   padding: '6px 8px',
+                  fontFamily: 'Inter',
+                  fontWeight: '700',
                   borderRadius: '30px'
                 }}
               >
@@ -555,7 +563,9 @@ function CreateFarm(props: any) {
                 width: '200px',
                 height: '48px',
                 padding: '6px 8px',
-                borderRadius: '30px'
+                borderRadius: '30px',
+                fontFamily: 'Inter',
+                fontWeight: '700',
               }}
             >
               {pendingTxn ? 'Processing...' : 'Create Farm'}

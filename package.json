@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@cryption/dapp-factory-sdk": "0.4.12",
+    "@cryption/dapp-factory-sdk": "0.4.17",
     "@emotion/react": "^11.10.0",
     "@emotion/styled": "^11.10.0",
     "@ethersproject/providers": "^5.4.5",
