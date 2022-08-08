@@ -8,7 +8,9 @@ import { NATIVE_TOKENS } from "../config";
  * Prompt the user to add BSC as a network on Metamask, or switch to BSC if the wallet is on a different network
  * @returns {boolean} true if the setup succeeded, false otherwise
  */
-export const setupNetwork = async (chainId: number | string | undefined | null) => {
+export const setupNetwork = async (
+  chainId: number | string | undefined | null
+) => {
   const provider = (window as WindowChain).ethereum;
   if (provider) {
     // @ts-ignore
@@ -18,26 +20,33 @@ export const setupNetwork = async (chainId: number | string | undefined | null) 
       chainIdFallback = parseInt(process.env.REACT_APP_CHAIN_ID, 10);
     }
     try {
-      // @ts-ignore
-      await provider.request({
-        method: "wallet_addEthereumChain",
-        params: [
-          {
-            chainId: `0x${chainIdFallback.toString(16)}`,
-            chainName: "Matic",
-            nativeCurrency: {
-              name: NATIVE_TOKENS[chainIdFallback].name,
-              symbol: NATIVE_TOKENS[chainIdFallback].symbol,
-              decimals: NATIVE_TOKENS[chainIdFallback].decimals,
-            },
-            // @ts-ignore
-            rpcUrls: nodes[chainIdFallback],
-            blockExplorerUrls: ["https://polygonscan.com/"],
-          },
-        ],
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: `0x${chainIdFallback.toString(16)}` }],
       });
       return true;
     } catch (error) {
+      if (error.code === 4902) {
+        // @ts-ignore
+        await provider.request({
+          method: "wallet_addEthereumChain",
+          params: [
+            {
+              chainId: `0x${chainIdFallback.toString(16)}`,
+              chainName: "Matic",
+              nativeCurrency: {
+                name: NATIVE_TOKENS[chainIdFallback].name,
+                symbol: NATIVE_TOKENS[chainIdFallback].symbol,
+                decimals: NATIVE_TOKENS[chainIdFallback].decimals,
+              },
+              // @ts-ignore
+              rpcUrls: nodes[chainIdFallback],
+              blockExplorerUrls: ["https://polygonscan.com/"],
+            },
+          ],
+        });
+        return true;
+      }
       console.error(error);
       return false;
     }

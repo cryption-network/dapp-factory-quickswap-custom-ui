@@ -16,6 +16,9 @@ const useEagerConnect = () => {
     // TODO: Figure out an elegant way to listen for when the BinanceChain object is ready
     if (connectorId && connectorId) {
       login(connectorId);
+    } else {
+      // @ts-ignore
+      login("injected");
     }
   }, [login, location]);
 };

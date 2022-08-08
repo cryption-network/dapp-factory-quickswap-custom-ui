@@ -156,7 +156,7 @@ function CreateFarm(props: any) {
     },
     inputToken: {
       address: "",
-      tokenName: "previousIcon",
+      tokenName: "",
       decimals: "",
       symbol: "",
     },
