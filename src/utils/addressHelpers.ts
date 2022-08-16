@@ -11,3 +11,6 @@ export const getQuickswapSingleRewardFactory = (chainId: number) => {
 export const getRouterAddress = (chainId: number) => {
   return getAddress(addresses.router, chainId);
 };
+export const getFactoryAddress = (chainId: number) => {
+  return getAddress(addresses.quickswapfactoryAddress, chainId);
+};

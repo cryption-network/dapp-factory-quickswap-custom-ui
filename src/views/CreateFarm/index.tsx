@@ -1,19 +1,25 @@
 // @ts-nocheck
-import React, { useEffect, forwardRef, useState } from 'react'
+import React, { forwardRef, useState } from 'react'
 import { withRouter } from 'react-router';
 import { Container, Grid, TextField, Stack, Button } from '@mui/material';
 import BigNumber from "bignumber.js";
 import { ethers, Contract } from "ethers";
 import { styled as muiStyled } from '@mui/material/styles';
 import styled from 'styled-components';
-import { getFeeManagerDetails, getFeeManagerAccountDetails, useCreateFarm } from "@cryption/dapp-factory-sdk";
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Select from '@mui/material/Select';
+import InputBase from '@mui/material/InputBase';
+import { useCreateFarm } from "@cryption/dapp-factory-sdk";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import {
-  useQuikcswapSingleRewardContract,
+  // useQuikcswapSingleRewardContract,
+  useFactoryContract
 } from "../../hooks/useContract";
 import tokenAbi from "../../config/constants/abi/token.json";
-import { getERC20Contract, getPolydexLpContract } from '../../utils/contractHelpers';
+import { getERC20Contract } from '../../utils/contractHelpers';
 import useWeb3 from "../../hooks/useWeb3";
 import {
   getQuickswapSingleRewardFactory,
@@ -50,7 +56,36 @@ const Card = styled.div`
   padding: 20px 20px;
   background-color: #1b1e29;
 `;
-
+const CssFormControl = muiStyled(FormControl)({
+  '& label.Mui-focused': {
+    color: '#c7cad9',
+  },
+  '& label.MuiFormLabel-root': {
+    color: '#c7cad9',
+  },
+});
+const CssInputBase = muiStyled(InputBase)({
+  'label + &': {
+    // marginTop: '10px',
+  },
+  '& .MuiInputBase-input': {
+    borderRadius: 4,
+    position: 'relative',
+    border: '1px solid #c7cad9',
+    color: ' #c7cad9',
+    fontSize: 16,
+    padding: '16.5px 14px',
+    fontFamily: 'Inter',
+    '&:focus': {
+      borderRadius: 4,
+      borderColor: '#c7cad9',
+      boxShadow: '0 0 0 0.2rem rgba(0,123,255,.25)',
+    },
+  },
+  '& .MuiSvgIcon-root': {
+    color: ' #c7cad9',
+  }
+});
 const CssTextField = muiStyled(TextField)({
   '& MuiInputBase-input': {
     fontFamily: 'Inter',
@@ -123,49 +158,99 @@ const CustomButton = styled.button`
   font-size: 18px;
   min-width: 300px;
 `;
-
+const TokenTitle = styled.span`
+  font-size: 14px;
+  line-height: 1.57;
+  font-weight: 700;
+  color: #c7cad9;
+`;
+const TokenContainer = styled.div`
+  background: #404557;
+  padding: 6px 12px;
+  border-radius: 8px;
+`;
 const ExampleCustomInput = forwardRef(({ value, onClick }: any, ref: any) => (
   <CustomButton className="example-custom-input" onClick={onClick} ref={ref}>
     {value}
   </CustomButton>
 ));
+const inputTokens = [
+  {
+    name: 'Cryption Network Token',
+    symbol: 'CNT',
+    address: '0x766f03e47674608cccf7414f6c4ddf3d963ae394',
+    decimals: 18
+  },
+  {
+    name: 'Tether USD',
+    symbol: 'USDT',
+    address: '0xD89a2E56B778AEfe719fc86E122B7db752Bb6B41',
+    decimals: 6
+  },
+  {
+    name: 'WETH',
+    symbol: 'WETH',
+    address: '0x2b5db7D98669be1242F62469214048cFe35d1a17',
+    decimals: 18
+  },
+  {
+    name: 'Wrapped Matic',
+    symbol: 'WMATIC',
+    address: '0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889',
+    decimals: 18
+  },
+  {
+    name: 'USDC Stablecoin',
+    symbol: 'USDC',
+    address: '0x06B761Ea0c0EA5674743A184bB826960f6f6cFa0',
+    decimals: 6
+  },
+]
 function CreateFarm(props: any) {
   const web3 = useWeb3();
-  const [isFarmLpAddress, toggleFarmLpAddress] = useState(true);
+  const [isValidPair, toggleValidPairAddress] = useState(null);
+  const [pendingTxn, togglePendingTx] = useState(false);
   const [allowanceAmount, setAllowanceAmount] = useState(0);
-  const [feeManagerDetails, setFeeManagerDetails] = useState({
-    name: "",
-    symbol: "",
-    decimals: "",
-    address: "",
-    feeAmount: "",
-    allowance: "",
-    isFeeManagerEnabled: false,
-    userBalance: "",
-  });
   const [farmData, setFarmData] = useState({
     amount: "",
     rewardDuration: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
     feeAddress: "",
     referrer: "",
+    inputToken0: {
+      address: "",
+      tokenName: "",
+      decimals: "",
+      symbol: "",
+    },
+    inputToken1: {
+      address: "",
+      tokenName: "",
+      decimals: "",
+      symbol: "",
+    },
     rewardToken: {
       address: "",
       tokenName: "",
       decimals: "",
       symbol: "",
+      balance: "0"
     },
     inputToken: {
       address: "",
       tokenName: "",
       decimals: "",
       symbol: "",
+      lpBal: "0",
     },
   });
-  const { launchFarmOrPool, pendingTxn } = useCreateFarm(1);
+
+  const { launchFarmOrPool } = useCreateFarm(1);
   const { chainId, account } = useActiveWeb3React();
   const factoryContractAddress = getQuickswapSingleRewardFactory(chainId || 80001);
-  const factoryContract = useQuikcswapSingleRewardContract();
+  // const factoryContract = useQuikcswapSingleRewardContract();
+  const quickswapFactoryContract = useFactoryContract()
   const launchFarm = async () => {
+    togglePendingTx(true)
     const rewardToken = {
       address: farmData.rewardToken.address,
       symbol: farmData.rewardToken.symbol,
@@ -190,12 +275,15 @@ function CreateFarm(props: any) {
     );
     const routerAddress = getRouterAddress(chainId || 80001)
     try {
-      await launchFarmOrPool(rewardToken, inputToken, "", 0, 0, "", "", "", "", routerAddress, rewardTokenAmountWei, null, 0, differenceInSecondsForRewardDuration);
+      await launchFarmOrPool(rewardToken, inputToken, "", 0, 0, "0", "0", "", "0", routerAddress, rewardTokenAmountWei, null, 0, differenceInSecondsForRewardDuration, null, 0, true);
+      togglePendingTx(false)
     } catch (error) {
+      togglePendingTx(false)
       console.error('error', error)
     }
   }
   const onCreateFarm = async () => {
+    togglePendingTx(true)
     const { rewardToken } = farmData;
     let approvalAmount = new BigNumber(
       farmData.amount ? farmData.amount : "0"
@@ -212,6 +300,7 @@ function CreateFarm(props: any) {
       tokenAbi.abi,
       signer
     );
+    console.log({ allowanceAmount, approvalAmount })
     if (new BigNumber(allowanceAmount).isLessThan(approvalAmount)) {
       try {
         const approvalTx = await tokenContract.approve(
@@ -253,56 +342,6 @@ function CreateFarm(props: any) {
       [title]: event.target.value,
     });
   }
-  const handleTokenAddress = async (address: string, type: string) => {
-    setFarmData({
-      ...farmData,
-      [type]: {
-        address: address,
-      },
-    });
-  };
-  const handleOnBlur = async (address: string, type: string) => {
-    try {
-      const isValidAddress = web3.utils.isAddress(address);
-      if (isValidAddress) {
-        if (type === "inputToken") {
-          try {
-            const lpContract = getPolydexLpContract(address, web3);
-            const token0 = await lpContract.methods.token0().call();
-            if (token0) {
-              toggleFarmLpAddress(true);
-            }
-          } catch (error) {
-            console.error(error);
-            toggleFarmLpAddress(false);
-          }
-        }
-        const contractDetails = getERC20Contract(address, web3);
-        const name = await contractDetails.methods.name().call();
-        const symbol = await contractDetails.methods.symbol().call();
-        const decimal = await contractDetails.methods.decimals().call();
-        if (type === "rewardToken") {
-          const allowance = await contractDetails.methods
-            .allowance(account, factoryContractAddress)
-            .call();
-          setAllowanceAmount(allowance);
-        }
-        setFarmData({
-          ...farmData,
-          [type]: {
-            tokenName: name,
-            address: address,
-            symbol: symbol,
-            decimals: decimal,
-          },
-        });
-      } else {
-        console.error("Not a valid Token address")
-      }
-    } catch (e) {
-      console.error("error is", e);
-    }
-  };
   const convertWeiToEther = (
     etherValue: string,
     decimals: number | string
@@ -311,37 +350,79 @@ function CreateFarm(props: any) {
       .dividedBy(new BigNumber(10).pow(decimals))
       .toJSON();
   };
-  useEffect(() => {
-    const getFees = async () => {
-      const feeManagerDetails = await getFeeManagerDetails(
-        factoryContract,
-        factoryContractAddress,
-        chainId || 80001,
-        web3
-      );
-      const feeManagerAccountDetails = await getFeeManagerAccountDetails(
-        feeManagerDetails.isFeeManagerEnabled,
-        account,
-        web3,
-        chainId || 80001,
-        factoryContractAddress,
-        feeManagerDetails.address
-      );
-      setFeeManagerDetails({
-        name: feeManagerDetails.name,
-        symbol: feeManagerDetails.symbol,
-        decimals: feeManagerDetails.decimals,
-        address: feeManagerDetails.address,
-        feeAmount: feeManagerDetails.feeAmount,
-        allowance: feeManagerAccountDetails.feeTokenAllowance || "0",
-        isFeeManagerEnabled: feeManagerDetails.isFeeManagerEnabled,
-        userBalance: feeManagerAccountDetails.feeTokenUserBalance || "0",
-      });
+  const checkPair = async (token0, token1) => {
+    try {
+      console.log({ token0, token1 })
+      const getPair = await quickswapFactoryContract.methods.getPair(token0, token1).call()
+      console.log({ getPair })
+      if (getPair && getPair !== '0x0000000000000000000000000000000000000000') {
+        const contractDetails = getERC20Contract(getPair, web3);
+        const balance = await contractDetails.methods.balanceOf(account).call();
+        const balanceToEth = await web3.utils.fromWei(balance, 'ether');
+        setFarmData(currentfarmData => ({
+          ...currentfarmData,
+          inputToken: {
+            address: getPair,
+            lpBal: balanceToEth,
+            decimals: '18',
+            symbol: 'UNI-V2',
+            tokenName: "Uniswap V2"
+          },
+        }));
+        toggleValidPairAddress(true)
+      } else {
+        toggleValidPairAddress(false)
+      }
+    } catch (error) {
+      console.log({ error })
+      toggleValidPairAddress(false)
     }
-    if (account && chainId) {
-      getFees();
+  }
+  const selectToken = async (event, title) => {
+    const token = inputTokens.find(eachToken => eachToken.address === event.target.value);
+    if (title === 'inputToken0' || title === 'inputToken1') {
+      setFarmData(currentfarmData => ({
+        ...currentfarmData,
+        [title]: {
+          address: event.target.value,
+          tokenName: token?.name,
+          decimals: token?.decimals,
+          symbol: token?.symbol,
+        },
+      }));
+      if (title === 'inputToken0' && farmData.inputToken1.address && farmData.inputToken1.address.length > 0) {
+        checkPair(event.target.value, farmData.inputToken1.address)
+      } else if (title === 'inputToken1' && farmData.inputToken0.address && farmData.inputToken0.address.length > 0) {
+        checkPair(farmData.inputToken0.address, event.target.value)
+      }
+    } else if (title === 'rewardToken') {
+      setFarmData(currentfarmData => ({
+        ...currentfarmData,
+        [title]: {
+          address: event.target.value,
+          tokenName: token?.name,
+          decimals: token?.decimals,
+          symbol: token?.symbol,
+        },
+      }));
+      const contractDetails = getERC20Contract(event.target.value, web3);
+      const balance = await contractDetails.methods.balanceOf(account).call();
+      setFarmData(currentfarmData => ({
+        ...currentfarmData,
+        [title]: {
+          address: event.target.value,
+          tokenName: token?.name,
+          decimals: token?.decimals,
+          symbol: token?.symbol,
+          balance: convertWeiToEther(balance, token?.decimals)
+        },
+      }));
+      const allowance = await contractDetails.methods
+        .allowance(account, factoryContractAddress)
+        .call();
+      setAllowanceAmount(allowance);
     }
-  }, [account, chainId, factoryContract, factoryContractAddress, web3])
+  }
   return (
     <Container maxWidth="lg" sx={{ paddingTop: '30px' }}>
       <div>
@@ -365,46 +446,145 @@ function CreateFarm(props: any) {
           Create Quickswap Single Reward Farm Powered by DappFactoy
         </TitleText>
         <Card>
-          <SubTitle>Enter Input Token Address</SubTitle>
+          <SubTitle>Select Pair Of Input Tokens</SubTitle>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={12} md={6} lg={6}>
-              <CssTextField
-                onBlur={(event) => handleOnBlur(event.target.value, "inputToken")}
-                onChange={(event) => handleTokenAddress(event.target.value, "inputToken")}
-                value={farmData.inputToken.address}
-                fullWidth id="outlined-basic"
-                label="Token Address"
-                variant="outlined"
-                error={!isFarmLpAddress}
-                helperText={!isFarmLpAddress && 'Not an Valid LP Address'}
-              />
+              <CssFormControl fullWidth>
+                <InputLabel id="demo-simple-select-label">Select Token 0</InputLabel>
+                <Select
+                  value={farmData.inputToken0.address}
+                  label="Select Token 0"
+                  input={<CssInputBase />}
+                  onChange={event => selectToken(event, 'inputToken0')}
+                >
+                  {inputTokens.map(eachToken =>
+                    <MenuItem value={eachToken.address}>
+                      {`${eachToken.name} ( ${eachToken.symbol} )`}
+                    </MenuItem>
+                  )}
+                </Select>
+              </CssFormControl>
             </Grid>
             <Grid item xs={12} sm={12} md={6} lg={6}>
-              <CssTextField value={farmData.inputToken.tokenName} fullWidth id="outlined-basic" label="Token name" variant="outlined" disabled />
+              <CssFormControl fullWidth>
+                <InputLabel id="demo-simple-select-label">Select Token 1</InputLabel>
+                <Select
+                  value={farmData.inputToken1.address}
+                  label="Select Token 1"
+                  input={<CssInputBase />}
+                  onChange={event => selectToken(event, 'inputToken1')}
+                >
+                  {inputTokens.map(eachToken =>
+                    <MenuItem value={eachToken.address}>
+                      {`${eachToken.name} ( ${eachToken.symbol} )`}
+                    </MenuItem>
+                  )}
+                </Select>
+              </CssFormControl>
             </Grid>
-            <Grid item xs={12} sm={12} md={6} lg={6}>
-              <CssTextField value={farmData.inputToken.symbol} fullWidth id="outlined-basic" label="Token symbol" variant="outlined" disabled />
-            </Grid>
-            <Grid item xs={12} sm={12} md={6} lg={6}>
-              <CssTextField value={farmData.inputToken.decimals} fullWidth id="outlined-basic" label="Token Decimals" variant="outlined" disabled />
+            <Grid item xs={12} sm={12} md={6} lg={12}>
+              {(farmData.inputToken0.address.length > 0 || farmData.inputToken1.address.length > 0) && <SubTitle>Selected Pair of Tokens</SubTitle>}
+              <Grid container spacing={3} justifyContent="center">
+                {farmData.inputToken0.address && farmData.inputToken0.address.length > 0 &&
+                  <Grid item xs={12} sm={12} md={6} lg={6}>
+                    <TokenContainer>
+                      <Stack direction="row" spacing={2}>
+                        <img src={IPFS_DEFAULT_IMAGES[farmData.inputToken0.symbol.toUpperCase()]} alt="CNT" width="28px" height="28px" style={{ objectFit: 'contain' }} />
+                        <Stack>
+                          <TokenTitle>
+                            {`${farmData.inputToken0.tokenName} ( ${farmData.inputToken0.symbol.toUpperCase()} )`}
+                          </TokenTitle>
+                          <TokenTitle>
+                            {farmData.inputToken0.address}
+                          </TokenTitle>
+                        </Stack>
+                      </Stack>
+                    </TokenContainer>
+                  </Grid>
+                }
+                {farmData.inputToken1.address && farmData.inputToken1.address.length > 0 &&
+                  <Grid item xs={12} sm={12} md={6} lg={6}>
+                    <TokenContainer>
+                      <Stack direction="row" spacing={2}>
+                        <img src={IPFS_DEFAULT_IMAGES[farmData.inputToken1.symbol.toUpperCase()]} alt="CNT" width="28px" height="28px" style={{ objectFit: 'contain' }} />
+                        <Stack>
+                          <TokenTitle>
+                            {`${farmData.inputToken1.tokenName} ( ${farmData.inputToken1.symbol.toUpperCase()} )`}
+                          </TokenTitle>
+                          <TokenTitle>
+                            {farmData.inputToken1.address}
+                          </TokenTitle>
+                        </Stack>
+                      </Stack>
+                    </TokenContainer>
+                  </Grid>
+                }
+                <Grid item xs={12} sm={12} md={6} lg={6}>
+                  {isValidPair &&
+                    <TokenContainer style={{ borderRadius: '8px' }}>
+                      <Stack direction="row" justifyContent="center" alignItems="center">
+                        <img src={IPFS_DEFAULT_IMAGES['CNT']} alt="CNT" width="28px" height="28px" style={{ objectFit: 'contain' }} />
+                        <img src={IPFS_DEFAULT_IMAGES['USDT']} alt="CNT" width="28px" height="28px" style={{ objectFit: 'contain' }} />
+                      </Stack>
+                      <Stack>
+                        <TokenTitle style={{ fontSize: '18px', textAlign: 'center' }}>
+                          Pair: {farmData.inputToken.address}
+                        </TokenTitle>
+                        <TokenTitle style={{ color: '#448aff', textAlign: 'center', fontSize: '16px' }}>
+                          Balance: {farmData.inputToken.lpBal} LP
+                        </TokenTitle>
+                      </Stack>
+                    </TokenContainer>
+                  }
+                  {isValidPair === false &&
+                    <TokenContainer style={{ borderRadius: '60px', border: '1px solid #ff5252', background: 'rgba(255,82,82,.1)' }}>
+                      <TokenTitle style={{ color: '#ff5252', textAlign: 'center', fontSize: '16px' }}>
+                        Given Set of Pairs doesn't contain any valid Pair
+                      </TokenTitle>
+                    </TokenContainer>
+                  }
+                </Grid>
+              </Grid>
             </Grid>
           </Grid>
           <SubTitle>Enter Reward Token Address</SubTitle>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={12} md={6} lg={6}>
-              <CssTextField
-                onBlur={(event) => handleOnBlur(event.target.value, "rewardToken")}
-                onChange={(event) => handleTokenAddress(event.target.value, "rewardToken")}
-                value={farmData.rewardToken.address} fullWidth id="outlined-basic" label="Token Address" variant="outlined" />
+              <CssFormControl fullWidth>
+                <InputLabel id="demo-simple-select-label">Select Reward Token</InputLabel>
+                <Select
+                  value={farmData.rewardToken.address}
+                  label="Select Reward Token"
+                  input={<CssInputBase />}
+                  onChange={event => selectToken(event, 'rewardToken')}
+                >
+                  {inputTokens.map(eachToken =>
+                    <MenuItem value={eachToken.address}>
+                      {`${eachToken.name} ( ${eachToken.symbol} )`}
+                    </MenuItem>
+                  )}
+                </Select>
+              </CssFormControl>
             </Grid>
             <Grid item xs={12} sm={12} md={6} lg={6}>
-              <CssTextField value={farmData.rewardToken.tokenName} fullWidth id="outlined-basic" label="Token name" variant="outlined" disabled />
-            </Grid>
-            <Grid item xs={12} sm={12} md={6} lg={6}>
-              <CssTextField value={farmData.rewardToken.symbol} fullWidth id="outlined-basic" label="Token symbol" variant="outlined" disabled />
-            </Grid>
-            <Grid item xs={12} sm={12} md={6} lg={6}>
-              <CssTextField value={farmData.rewardToken.decimals} fullWidth id="outlined-basic" label="Token Decimals" variant="outlined" disabled />
+              {farmData.rewardToken.address && farmData.rewardToken.address.length > 0 &&
+                <TokenContainer style={{ width: 'fit-content', padding: '10px 20px', borderRadius: '8px' }}>
+                  <Stack direction="row" spacing={2}>
+                    <img src={IPFS_DEFAULT_IMAGES[farmData.rewardToken.symbol.toUpperCase()]} alt="CNT" width="28px" height="28px" style={{ objectFit: 'contain' }} />
+                    <Stack>
+                      <TokenTitle style={{ fontSize: '16px' }}>
+                        {`${farmData.rewardToken.tokenName} ( ${farmData.rewardToken.symbol.toUpperCase()} )`}
+                      </TokenTitle>
+                      <TokenTitle style={{ color: '#448aff', fontSize: '16px' }}>
+                        Balance: {farmData.rewardToken.balance} {farmData.rewardToken.symbol.toUpperCase()}
+                      </TokenTitle>
+                      <TokenTitle>
+                        {farmData.rewardToken.address}
+                      </TokenTitle>
+                    </Stack>
+                  </Stack>
+                </TokenContainer>
+              }
             </Grid>
           </Grid>
           <SubTitle>Enter Reward Details</SubTitle>
@@ -439,121 +619,7 @@ function CreateFarm(props: any) {
               </InputWrapper>
             </Grid>
           </Grid>
-          {feeManagerDetails.isFeeManagerEnabled && (
-            <Stack spacing={2} style={{ width: '100%', marginTop: '20px' }}>
-              <Stack spacing={5} direction="row" justifyContent="space-around">
-                <SubTitle>Launch Fees</SubTitle>
-                <Stack spacing={2} direction="row" alignItems="center" justifyContent="center">
-                  <SubTitle>{new BigNumber(
-                    convertWeiToEther(
-                      feeManagerDetails.feeAmount,
-                      feeManagerDetails.decimals
-                    )
-                  ).toFixed(3)}{" "}
-                  </SubTitle>
-                  <img
-                    src={
-                      IPFS_DEFAULT_IMAGES[
-                      feeManagerDetails.symbol.toUpperCase()
-                      ]
-                    }
-                    alt={feeManagerDetails.symbol}
-                    width="20px"
-                    style={{ objectFit: 'contain' }}
-                  />
-                </Stack>
-              </Stack>
-              {feeManagerDetails.address !== "0x0000000000000000000000000000000000000000" &&
-                <Stack spacing={5} direction="row" justifyContent="space-around">
-                  <SubTitle>Current Allowance</SubTitle>
-                  <Stack spacing={2} direction="row" alignItems="center" justifyContent="center">
-                    <SubTitle>{new BigNumber(
-                      convertWeiToEther(
-                        feeManagerDetails.allowance,
-                        feeManagerDetails.decimals
-                      )
-                    ).toFixed(3)}{" "}
-                    </SubTitle>
-                    <img
-                      src={
-                        IPFS_DEFAULT_IMAGES[
-                        feeManagerDetails.symbol.toUpperCase()
-                        ]
-                      }
-                      alt={feeManagerDetails.symbol}
-                      width="20px"
-                      style={{ objectFit: 'contain' }}
-                    />
-                  </Stack>
-                </Stack>}
-              <Stack spacing={5} direction="row" justifyContent="space-around">
-                <SubTitle>{feeManagerDetails.symbol} Balance</SubTitle>
-                <Stack spacing={2} direction="row" alignItems="center" justifyContent="center">
-                  <SubTitle>{new BigNumber(
-                    convertWeiToEther(
-                      feeManagerDetails.userBalance,
-                      feeManagerDetails.decimals
-                    )
-                  ).toFixed(3)}
-                  </SubTitle>
-                  <img
-                    src={
-                      IPFS_DEFAULT_IMAGES[
-                      feeManagerDetails.symbol.toUpperCase()
-                      ]
-                    }
-                    alt={feeManagerDetails.symbol}
-                    width="20px"
-                    style={{ objectFit: 'contain' }}
-                  />
-                </Stack>
-              </Stack>
-            </Stack>
-          )}
-          {feeManagerDetails.isFeeManagerEnabled ? (
-            <Stack direction="row" justifyContent="space-around" spacing={5} alignItems="center" sx={{ marginTop: '25px' }}>
-              <Button
-                disabled={new BigNumber(
-                  feeManagerDetails.feeAmount
-                ).isLessThanOrEqualTo(feeManagerDetails.allowance)}
-                sx={{
-                  color: '#448aff',
-                  width: '200px',
-                  height: '48px',
-                  padding: '6px 8px',
-                  borderRadius: '30px',
-                  fontFamily: 'Inter',
-                  fontWeight: '700',
-                  border: '1px solid #448aff'
-                }}
-              >
-                Approve Fee Manager
-              </Button>
-              <Button
-                disabled={
-                  new BigNumber(
-                    feeManagerDetails.feeAmount
-                  ).isGreaterThanOrEqualTo(
-                    feeManagerDetails.allowance
-                  ) || pendingTxn
-                }
-                onClick={onCreateFarm}
-                sx={{
-                  background: '#448aff',
-                  color: '#ffffff',
-                  width: '200px',
-                  height: '48px',
-                  padding: '6px 8px',
-                  fontFamily: 'Inter',
-                  fontWeight: '700',
-                  borderRadius: '30px'
-                }}
-              >
-                {pendingTxn ? 'Processing...' : 'Create Farm'}
-              </Button>
-            </Stack>
-          )
-            :
+          <Stack sx={{ marginTop: '20px' }} justifyContent="center" alignItems="center">
             <Button
               disabled={pendingTxn}
               onClick={onCreateFarm}
@@ -570,7 +636,7 @@ function CreateFarm(props: any) {
             >
               {pendingTxn ? 'Processing...' : 'Create Farm'}
             </Button>
-          }
+          </Stack>
         </Card>
       </div >
     </Container >
