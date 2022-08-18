@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@arkane-network/arkane-connect": "^1.28.0-develop.0",
+    "@arkane-network/web3-arkane-provider": "^0.23.0",
     "@cryption/dapp-factory-sdk": "0.4.18",
     "@emotion/react": "^11.10.0",
     "@emotion/styled": "^11.10.0",
@@ -17,9 +19,16 @@
     "@types/react-router": "^5.1.18",
     "@types/react-router-dom": "^5.3.3",
     "@types/styled-components": "^5.1.25",
+    "@uniswap/sdk": "npm:quickswap-sdk@3.0.8",
+    "@web3-react/abstract-connector": "^6.0.7",
     "@web3-react/core": "^6.1.9",
     "@web3-react/injected-connector": "^6.0.7",
+    "@web3-react/ledger-connector": "^6.1.9",
+    "@web3-react/portis-connector": "^6.2.11",
+    "@web3-react/walletconnect-connector": "^6.2.13",
+    "@web3-react/walletlink-connector": "^6.2.14",
     "ethers": "^5.4.7",
+    "fortmatic": "^2.2.1",
     "react": "^17.0.2",
     "react-datepicker": "^4.8.0",
     "react-dom": "^17.0.2",
@@ -29,6 +38,7 @@
     "react-scripts": "^4.0.3",
     "styled-components": "^5.3.5",
     "typescript": "^3.4",
+    "walletlink": "^2.5.0",
     "web-vitals": "^1.0.1"
   },
   "scripts": {
