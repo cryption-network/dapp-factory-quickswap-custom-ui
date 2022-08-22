@@ -36,6 +36,17 @@ const GreenDot = styled.div`
   margin-right: 8px;
   background-color: #0fc679;
 `;
+const StyledLink = styled.a`
+  border-radius: 10px;
+  cursor: pointer;
+  position: relative;
+  font-weight: 700;
+  padding: 0 24px;
+  overflow: hidden;
+  text-decoration: none;
+  margin-right: 12px;
+  color: #696c80;
+`;
 function App() {
   useEagerConnect()
   const [loginModal, toggleLoginModal] = useState(false);
@@ -118,7 +129,7 @@ function App() {
     })
   }
   return (
-    <Container maxWidth="lg">
+    <Container maxWidth="xl">
       <Modal open={loginModal} title="Account" onClose={() => toggleLoginModal(false)}>
         <div>
           <ConnectedWalletDiv>
@@ -176,6 +187,15 @@ function App() {
       </Modal>
       <Stack direction="row" justifyContent="space-between" sx={{ marginBottom: '20px', marginTop: '20px' }}>
         <img src={quickLogo} alt="quick logo" width="150px" />
+        <Stack direction="row" spacing={3} justifyContent="space-between" alignItems="center">
+          <StyledLink href='https://quickswap.exchange/#/swap' target="_blank">Swap</StyledLink>
+          <StyledLink href='https://quickswap.exchange/#/pools'>Pool</StyledLink>
+          <StyledLink href='https://quickswap.exchange/#/farm'>Farm</StyledLink>
+          <StyledLink href='https://quickswap.exchange/#/dragons'>Dragon’s Lair</StyledLink>
+          <StyledLink href='https://quickswap.exchange/#/convert'>Convert</StyledLink>
+          <StyledLink href='https://quickswap.exchange/#/prdt'>Predictions</StyledLink>
+          <StyledLink href='https://quickswap.exchange/#/analytics'>Analytics</StyledLink>
+        </Stack>
         <Stack direction="row" spacing={3} justifyContent="space-between">
           {account ?
             <Button
@@ -210,7 +230,6 @@ function App() {
               Connect To Wallet
             </Button>
           }
-          <img src={PoweredByCryptionNetwork} alt="Dapp factory" width="200px" />
         </Stack>
       </Stack>
       <Router history={history}>
@@ -223,7 +242,10 @@ function App() {
           </Route>
         </Switch>
       </Router>
-    </Container >
+      <div style={{position: 'absolute', bottom: '20px', right: '20px'}}>
+        <img src={PoweredByCryptionNetwork} alt="Dapp factory" width="200px" />
+      </div>
+    </Container>
   );
 }
 

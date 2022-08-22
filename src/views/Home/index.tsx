@@ -34,6 +34,9 @@ function Home(props: any) {
   // console.log({ chainId, account })
   return (
     <div>
+      {/* <div className='heroBkg'>
+        <img src="https://quickswap.exchange/static/media/heroBkg.fbe399ae.svg" alt="heroimage" />
+      </div> */}
       <Card>
         <Stack spacing={3} alignItems="center" justifyContent="center">
           <TitleText>

@@ -231,7 +231,7 @@ function CreateFarm(props: any) {
     );
     const routerAddress = getRouterAddress(chainId || 80001)
     try {
-      await launchFarmOrPool(rewardToken, inputToken, "", 0, 0, "0", "0", "", "0", routerAddress, rewardTokenAmountWei, null, 0, differenceInSecondsForRewardDuration, null, 0, true);
+      await launchFarmOrPool(rewardToken, inputToken, "", 0, 0, "0", "0", "", "0", routerAddress, rewardTokenAmountWei, null, 0, differenceInSecondsForRewardDuration, null, 1, true);
       togglePendingTx(false)
     } catch (error) {
       togglePendingTx(false)
@@ -379,6 +379,44 @@ function CreateFarm(props: any) {
       const tokenList = await getTokens.json()
       if (tokenList && tokenList.tokens) {
         const getTokensForChain = tokenList.tokens.filter(eachToken => eachToken.chainId === chainId)
+        // if (chainId === 80001) {
+        //   const testTokens = [
+        //     {
+        //       name: 'Cryption Network Token',
+        //       symbol: 'CNT',
+        //       address: '0x766f03e47674608cccf7414f6c4ddf3d963ae394',
+        //       decimals: 18
+        //     },
+        //     {
+        //       name: 'Tether USD',
+        //       symbol: 'USDT',
+        //       address: '0xD89a2E56B778AEfe719fc86E122B7db752Bb6B41',
+        //       decimals: 6
+        //     },
+        //     {
+        //       name: 'WETH',
+        //       symbol: 'WETH',
+        //       address: '0x2b5db7D98669be1242F62469214048cFe35d1a17',
+        //       decimals: 18
+        //     },
+        //     {
+        //       name: 'Wrapped Matic',
+        //       symbol: 'WMATIC',
+        //       address: '0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889',
+        //       decimals: 18
+        //     },
+        //     {
+        //       name: 'USDC Stablecoin',
+        //       symbol: 'USDC',
+        //       address: '0x06B761Ea0c0EA5674743A184bB826960f6f6cFa0',
+        //       decimals: 6
+        //     },
+        //   ]
+        //   getTokensForChain = [
+        //     ...getTokensForChain,
+        //     ...testTokens
+        //   ]
+        // }
         setTokens(getTokensForChain)
       }
     }
