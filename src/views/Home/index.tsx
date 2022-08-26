@@ -11,7 +11,7 @@ const TitleText = styled.p`
   color: #c7cad9;
   margin: 0;
   font-family: Inter;
-  font-size: 25px;
+  font-size: 20px;
   font-weight: 700;
   line-height: 1.43;
   text-align: center;
@@ -22,7 +22,8 @@ const Card = styled.div`
   border-radius: 10px;
   font-family: Inter;
   padding: 20px 20px;
-  background-color: #1b1e29;
+  position: relative;
+  z-index:2
 `;
 function Home(props: any) {
   const { chainId, account } = useActiveWeb3React();
@@ -34,13 +35,13 @@ function Home(props: any) {
   // console.log({ chainId, account })
   return (
     <div>
-      {/* <div className='heroBkg'>
+      <div className='heroBkg'>
         <img src="https://quickswap.exchange/static/media/heroBkg.fbe399ae.svg" alt="heroimage" />
-      </div> */}
+      </div>
       <Card>
         <Stack spacing={3} alignItems="center" justifyContent="center">
           <TitleText>
-            Click on button below to create Quickswap Single Reward Farm Powered by DappFactoy
+            Create a Single Reward Farm
           </TitleText>
           <Button
             onClick={() => props.history.push('/create')}

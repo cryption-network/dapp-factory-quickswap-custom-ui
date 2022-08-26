@@ -185,7 +185,7 @@ function App() {
           {getOptions()}
         </div>
       </Modal>
-      <Stack direction="row" justifyContent="space-between" sx={{ marginBottom: '20px', marginTop: '20px' }}>
+      <Stack direction="row" justifyContent="space-between" sx={{ marginBottom: '20px', marginTop: '20px', position: 'relative', zIndex:2 }}>
         <img src={quickLogo} alt="quick logo" width="150px" />
         <Stack direction="row" spacing={3} justifyContent="space-between" alignItems="center">
           <StyledLink href='https://quickswap.exchange/#/swap' target="_blank">Swap</StyledLink>
@@ -242,9 +242,9 @@ function App() {
           </Route>
         </Switch>
       </Router>
-      <div style={{position: 'absolute', bottom: '20px', right: '20px'}}>
+      {false && <div style={{ position: 'absolute', bottom: '20px', right: '20px' }}>
         <img src={PoweredByCryptionNetwork} alt="Dapp factory" width="200px" />
-      </div>
+      </div>}
     </Container>
   );
 }

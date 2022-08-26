@@ -1,14 +1,15 @@
 // @ts-nocheck
 import React, { forwardRef, useState, useEffect } from 'react'
 import { withRouter } from 'react-router';
-import Autocomplete from '@mui/material/Autocomplete';
-import { Container, Grid, TextField, Stack, Button, Box } from '@mui/material';
+import { Container, Grid, TextField, Stack, Button, Box, IconButton } from '@mui/material';
 import BigNumber from "bignumber.js";
 import { ethers, Contract } from "ethers";
 import { styled as muiStyled } from '@mui/material/styles';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import styled from 'styled-components';
-import { useCreateFarm } from "@cryption/dapp-factory-sdk";
+import { useCreateFarm, LP_IMAGE_SEPERATOR_STRING } from "@cryption/dapp-factory-sdk";
 import DatePicker from "react-datepicker";
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import "react-datepicker/dist/react-datepicker.css";
 import {
   // useQuikcswapSingleRewardContract,
@@ -22,14 +23,16 @@ import {
   getRouterAddress
 } from "../../utils/addressHelpers";
 import useActiveWeb3React from "../../hooks";
-import previousIcon from '../../images/previous.png';
+import TokenList from '../../components/TokenList';
+import PoweredByCryptionNetwork from '../../images/PoweredByCryptionNetwork.png';
+import './index.css';
 
 const TitleText = styled.p`
   color: #c7cad9;
   margin: 0;
-  font-size: 35px;
+  font-size: 20px;
   font-weight: 700;
-      font-family: Inter;
+  font-family: Inter;
   line-height: 1.43;
   text-align: center;
 `;
@@ -37,45 +40,30 @@ const SubTitle = styled.p`
   color: #c7cad9;
   font-size: 20px;
   font-weight: 700;
-      font-family: Inter;
+  font-family: Inter;
   line-height: 1.43;
-  text-align: center;
+  text-align: left;
   margin-top: 25px;
   margin-bottom: 20px !important;
 `;
 const Card = styled.div`
-  width: 100%;
+  width: fit-content;
   margin-top: 30px;
-      font-family: Inter;
+  font-family: Inter;
   border-radius: 10px;
   padding: 20px 20px;
-  background-color: #1b1e29;
+  background-color: #1C1E29;
 `;
 
-const StyledInput = styled.input`
-  font-size: 16px;
-  font-weight: 800;
-  color: rgb(199, 202, 217);
-  background: transparent;
-  border: none;
-  padding: 6px 12px;
-  min-height: 48px;
-  cursor: pointer;
-  &::placeholder {
-       color: #c7cad9;
-   }
-   &:focus-visible {
-    border: none;
-    outline: none;
-   }
-`;
 const CssTextField = muiStyled(TextField)({
   '& MuiInputBase-input': {
     fontFamily: 'Inter',
     color: '#c7cad9',
+    background: '#12131A'
   },
   '& label.Mui-focused': {
     color: '#c7cad9',
+    borderColor: '#12131A !important',
   },
   '& label.MuiFormLabel-root': {
     color: '#c7cad9',
@@ -85,12 +73,14 @@ const CssTextField = muiStyled(TextField)({
     borderBottomColor: '#c7cad9',
   },
   '& .MuiOutlinedInput-root': {
+    borderRadius: '10px',
     color: '#c7cad9 !important',
+    background: '#12131A',
     '& fieldset': {
-      borderColor: '#c7cad9 !important',
+      borderColor: '#12131A !important',
     },
     '&:hover fieldset': {
-      borderColor: '#c7cad9 !important',
+      borderColor: '#12131A !important',
     },
     '&.Mui-focused fieldset': {
       borderColor: '#c7cad9d !important',
@@ -133,10 +123,11 @@ const InputWrapper = styled.div`
   }
 `;
 const CustomButton = styled.button`
-  background-color: #448aff;
-  border: 1px solid #448aff;
-  border-radius: 14px;
+  background-color: #12131A;
+  border: 1px solid #12131A;
+  border-radius: 10px;
   padding: 10px;
+  width: 100%;
   color: #ffffff;
   font-size: 18px;
   min-width: 300px;
@@ -153,16 +144,28 @@ const TokenContainer = styled.div`
   border-radius: 8px;
 `;
 
-const ExampleCustomInput = forwardRef(({ value, onClick }: any, ref: any) => (
-  <CustomButton className="example-custom-input" onClick={onClick} ref={ref}>
-    {value}
-  </CustomButton>
-));
+const ExampleCustomInput = forwardRef(({ value, onClick }: any, ref: any) => {
+  let split = value
+  if (value) {
+    split = value.split(' ');
+  }
+  return (
+    <CustomButton className="example-custom-input" onClick={onClick} ref={ref}>
+      <Stack direction="row" justifyContent="space-between">
+        <span>{split[0]}</span>
+        <span>{split[1]} UTC</span>
+      </Stack>
+    </CustomButton>
+  )
+});
 function CreateFarm(props: any) {
   const web3 = useWeb3();
   const [isValidPair, toggleValidPairAddress] = useState(null);
   const [tokens, setTokens] = useState([]);
   const [pendingTxn, togglePendingTx] = useState(false);
+  const [showInputtoken0Modal, toggleInputtoken0Modal] = useState(false);
+  const [showInputtoken1Modal, toggleInputtoken1Modal] = useState(false);
+  const [showRewardTokenModal, toggleRewardTokenModal] = useState(false);
   const [allowanceAmount, setAllowanceAmount] = useState(0);
   const [farmData, setFarmData] = useState({
     amount: "",
@@ -206,72 +209,82 @@ function CreateFarm(props: any) {
   // const factoryContract = useQuikcswapSingleRewardContract();
   const quickswapFactoryContract = useFactoryContract()
   const launchFarm = async () => {
-    togglePendingTx(true)
-    const rewardToken = {
-      address: farmData.rewardToken.address,
-      symbol: farmData.rewardToken.symbol,
-      decimals: parseInt(farmData.rewardToken.decimals),
-      imgUrl: farmData.rewardToken.logoURI,
-    }
-    const inputToken = {
-      address: farmData.inputToken.address,
-      symbol: farmData.inputToken.symbol,
-      decimals: parseInt(farmData.inputToken.decimals),
-      imgUrl: ""
-    }
-    const rewardTokenAmountWei = new BigNumber(
-      farmData.amount ? farmData.amount : "0"
-    )
-      .multipliedBy(10 ** parseFloat(farmData.rewardToken.decimals))
-      .toString();
-    const differenceInSecondsForRewardDuration = Math.floor(
-      (farmData.rewardDuration.valueOf() -
-        new Date(Date.now()).valueOf()) /
-      1000
-    );
-    const routerAddress = getRouterAddress(chainId || 80001)
     try {
-      await launchFarmOrPool(rewardToken, inputToken, "", 0, 0, "0", "0", "", "0", routerAddress, rewardTokenAmountWei, null, 0, differenceInSecondsForRewardDuration, null, 1, true);
-      togglePendingTx(false)
+      togglePendingTx(true)
+      const rewardToken = {
+        address: farmData.rewardToken.address,
+        symbol: farmData.rewardToken.symbol,
+        decimals: parseInt(farmData.rewardToken.decimals),
+        imgUrl: farmData.rewardToken.logoURI,
+      }
+      const inputToken = {
+        address: farmData.inputToken.address,
+        symbol: farmData.inputToken.symbol,
+        decimals: parseInt(farmData.inputToken.decimals),
+        imgUrl: `${farmData.inputToken0.logoURI}${LP_IMAGE_SEPERATOR_STRING}${farmData.inputToken1.logoURI}`
+      }
+      console.log({ inputToken })
+      const rewardTokenAmountWei = new BigNumber(
+        farmData.amount ? farmData.amount : "0"
+      )
+        .multipliedBy(10 ** parseFloat(farmData.rewardToken.decimals))
+        .toString();
+      const differenceInSecondsForRewardDuration = Math.floor(
+        (farmData.rewardDuration.valueOf() -
+          new Date(Date.now()).valueOf()) /
+        1000
+      );
+      const routerAddress = getRouterAddress(chainId || 80001)
+      try {
+        await launchFarmOrPool(rewardToken, inputToken, "", 0, 0, "0", "0", "", "0", routerAddress, rewardTokenAmountWei, null, 0, differenceInSecondsForRewardDuration, null, 1, true);
+        togglePendingTx(false)
+      } catch (error) {
+        togglePendingTx(false)
+        console.error('error', error)
+      }
     } catch (error) {
       togglePendingTx(false)
-      console.error('error', error)
+      console.error(error);
     }
   }
   const onCreateFarm = async () => {
-    togglePendingTx(true)
-    const { rewardToken } = farmData;
-    let approvalAmount = new BigNumber(
-      farmData.amount ? farmData.amount : "0"
-    )
-      .multipliedBy(10 ** parseFloat(farmData.rewardToken.decimals))
-      .toString();
-    approvalAmount = Number(approvalAmount).toLocaleString("fullwide", {
-      useGrouping: false,
-    });
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-    const tokenContract = new Contract(
-      rewardToken.address,
-      tokenAbi.abi,
-      signer
-    );
-    console.log({ allowanceAmount, approvalAmount })
-    if (new BigNumber(allowanceAmount).isLessThan(approvalAmount)) {
-      try {
-        const approvalTx = await tokenContract.approve(
-          factoryContractAddress,
-          approvalAmount
-        );
-        await approvalTx.wait();
+    try {
+      togglePendingTx(true)
+      const { rewardToken } = farmData;
+      let approvalAmount = new BigNumber(
+        farmData.amount ? farmData.amount : "0"
+      )
+        .multipliedBy(10 ** parseFloat(farmData.rewardToken.decimals))
+        .toString();
+      approvalAmount = Number(approvalAmount).toLocaleString("fullwide", {
+        useGrouping: false,
+      });
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const tokenContract = new Contract(
+        rewardToken.address,
+        tokenAbi.abi,
+        signer
+      );
+      if (new BigNumber(allowanceAmount).isLessThan(approvalAmount)) {
+        try {
+          const approvalTx = await tokenContract.approve(
+            factoryContractAddress,
+            approvalAmount
+          );
+          await approvalTx.wait();
+          launchFarm()
+        } catch (e) {
+          console.error(e);
+        }
+      } else if (
+        new BigNumber(allowanceAmount).isGreaterThanOrEqualTo(approvalAmount)
+      ) {
         launchFarm()
-      } catch (e) {
-        console.error(e);
       }
-    } else if (
-      new BigNumber(allowanceAmount).isGreaterThanOrEqualTo(approvalAmount)
-    ) {
-      launchFarm()
+    } catch (error) {
+      togglePendingTx(false)
+      console.error(error);
     }
   }
   const formatUTC = (dateInt: Date | number, addOffset = false) => {
@@ -335,6 +348,7 @@ function CreateFarm(props: any) {
     }
   }
   const selectToken = async (token, title) => {
+    console.log({ token, title })
     const defaultValues = {
       address: "",
       name: "",
@@ -378,355 +392,214 @@ function CreateFarm(props: any) {
       const getTokens = await fetch('https://unpkg.com/quickswap-default-token-list@latest/build/quickswap-default.tokenlist.json')
       const tokenList = await getTokens.json()
       if (tokenList && tokenList.tokens) {
-        const getTokensForChain = tokenList.tokens.filter(eachToken => eachToken.chainId === chainId)
-        // if (chainId === 80001) {
-        //   const testTokens = [
-        //     {
-        //       name: 'Cryption Network Token',
-        //       symbol: 'CNT',
-        //       address: '0x766f03e47674608cccf7414f6c4ddf3d963ae394',
-        //       decimals: 18
-        //     },
-        //     {
-        //       name: 'Tether USD',
-        //       symbol: 'USDT',
-        //       address: '0xD89a2E56B778AEfe719fc86E122B7db752Bb6B41',
-        //       decimals: 6
-        //     },
-        //     {
-        //       name: 'WETH',
-        //       symbol: 'WETH',
-        //       address: '0x2b5db7D98669be1242F62469214048cFe35d1a17',
-        //       decimals: 18
-        //     },
-        //     {
-        //       name: 'Wrapped Matic',
-        //       symbol: 'WMATIC',
-        //       address: '0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889',
-        //       decimals: 18
-        //     },
-        //     {
-        //       name: 'USDC Stablecoin',
-        //       symbol: 'USDC',
-        //       address: '0x06B761Ea0c0EA5674743A184bB826960f6f6cFa0',
-        //       decimals: 6
-        //     },
-        //   ]
-        //   getTokensForChain = [
-        //     ...getTokensForChain,
-        //     ...testTokens
-        //   ]
-        // }
+        let getTokensForChain = tokenList.tokens.filter(eachToken => eachToken.chainId === chainId)
+        if (chainId === 80001) {
+          const testTokens = [
+            {
+              name: 'Cryption Network Token',
+              symbol: 'CNT',
+              address: '0x766f03e47674608cccf7414f6c4ddf3d963ae394',
+              decimals: 18,
+              logoURI: "https://cryption-network-local.infura-ipfs.io/ipfs/QmceihNozdFNThRJiP2X93X2LXmSb5XWzsTaNsVBA7GwTZ"
+            },
+            {
+              name: 'Tether USD',
+              symbol: 'USDT',
+              address: '0xD89a2E56B778AEfe719fc86E122B7db752Bb6B41',
+              decimals: 6,
+              logoURI: "https://cryption-network-local.infura-ipfs.io/ipfs/QmTXHnF2hcQyqo7DGGRDHMizUMCNRo1CNBJYwbXUKpQWj2"
+            },
+            {
+              name: 'WETH',
+              symbol: 'WETH',
+              address: '0x2b5db7D98669be1242F62469214048cFe35d1a17',
+              decimals: 18,
+              logoURI: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png"
+            },
+            {
+              name: 'Wrapped Matic',
+              symbol: 'WMATIC',
+              address: '0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889',
+              decimals: 18,
+              logoURI: "https://cryption-network-local.infura-ipfs.io/ipfs/QmQnnPC9FKVdC2qnvHdDE45cz6q8grpeBLwBWNETVwzi5Q"
+            },
+            {
+              name: 'USDC Stablecoin',
+              symbol: 'USDC',
+              address: '0x06B761Ea0c0EA5674743A184bB826960f6f6cFa0',
+              decimals: 6,
+              logoURI: "https://cryption-network-local.infura-ipfs.io/ipfs/QmV17MDKrb3aCQa2a2SzBZaCeAeAFrpFmqCjn351cWApGS"
+            },
+          ]
+          getTokensForChain = [
+            ...getTokensForChain,
+            ...testTokens
+          ]
+        }
         setTokens(getTokensForChain)
       }
     }
     getToknList()
   }, [chainId])
+  let disabledButton = true;
+  if (farmData.inputToken.address.length > 0 && farmData.rewardToken.address.length > 0 && parseFloat(farmData.amount) > 0) {
+    disabledButton = false
+  }
   return (
-    <Container maxWidth="lg" sx={{ paddingTop: '30px' }}>
-      <div>
-        <Button
-          onClick={() => props.history.push('/')}
-          startIcon={<img src={previousIcon} alt="img" width="30px" />}
-          sx={{
-            background: '#448aff',
-            color: '#ffffff',
-            height: '48px',
-            fontFamily: 'Inter',
-            fontWeight: '700',
-            padding: '6px 8px',
-            marginBottom: '20px',
-            borderRadius: '30px'
+    <div>
+      <div className='heroBkg'>
+        <img src="https://quickswap.exchange/static/media/heroBkg.fbe399ae.svg" alt="heroimage" />
+      </div>
+      <Container maxWidth="lg"
+        sx={{
+          paddingTop: '30px', position: 'relative', zIndex: 2
+        }}>
+        <TokenList tokens={tokens} selectedCurrency={farmData.inputToken0} isOpen={showInputtoken0Modal}
+          onSelect={(token) => {
+            toggleInputtoken0Modal(false);
+            selectToken(token, 'inputToken0')
           }}
-        >
-          Go Back to Farms
-        </Button>
-        <TitleText>
-          Create Quickswap Single Reward Farm Powered by DappFactoy
-        </TitleText>
-        <Card>
-          <SubTitle>Select Pair Of Input Tokens</SubTitle>
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={12} md={6} lg={6}>
-              <Autocomplete
-                id="country-select-demo"
-                sx={{ width: 300 }}
-                onChange={(event, newValue) => selectToken(newValue, 'inputToken0')}
-                options={tokens}
-                autoHighlight
-                getOptionLabel={(option) => option.name}
-                renderOption={(props, option) => (
-                  <Stack {...props} style={{ padding: '6px 18px', cursor: 'pointer' }} direction="row" alignItems="center">
-                    <img src={option.logoURI} alt={option.symbol} width="28px" height="28px" style={{ marginRight: '10px' }} />
-                    <p style={{
-                      fontSize: '16px',
-                      fontWeight: '800'
-                    }}>
-                      {`${option.name} ( ${option.symbol} )`}
-                    </p>
-                  </Stack>
+          onDismiss={() => toggleInputtoken0Modal(false)}
+        />
+        <TokenList tokens={tokens} selectedCurrency={farmData.inputToken1} isOpen={showInputtoken1Modal}
+          onSelect={(token) => {
+            toggleInputtoken1Modal(false);
+            selectToken(token, 'inputToken1')
+          }}
+          onDismiss={() => toggleInputtoken1Modal(false)}
+        />
+        <TokenList tokens={tokens} selectedCurrency={farmData.rewardToken} isOpen={showRewardTokenModal}
+          onSelect={(token) => {
+            toggleRewardTokenModal(false);
+            selectToken(token, 'rewardToken')
+          }}
+          onDismiss={() => toggleRewardTokenModal(false)}
+        />
+        <Stack justifyContent="center" alignItems="center">
+          <Card>
+            <Stack spacing={2} alignItems="center" justifyContent="space-between" direction="row" sx={{ marginBottom: '20px' }}>
+              <IconButton onClick={() => props.history.push('/')}>
+                <ArrowBackIcon sx={{ color: '#636780' }} />
+              </IconButton>
+              <TitleText style={{ fontSize: '25px' }}>
+                Build a Farm
+              </TitleText>
+              <img src={PoweredByCryptionNetwork} alt="Dapp factory" width="200px" />
+            </Stack>
+            <TitleText style={{ marginBottom: '30px' }}>
+              Create Quickswap Single Reward Farm Powered by DappFactoy
+            </TitleText>
+            <SubTitle style={{ textAlign: 'left' }}>Select Pair</SubTitle>
+            <Stack spacing={2} alignItems="center" justifyContent="space-between" direction="row" sx={{ marginBottom: '40px', margintop: '20px' }}>
+              <Box
+                className={`currencyButton ${farmData.inputToken0.address.length > 0 ? 'currencySelected' : 'noCurrency'
+                  }`}
+                onClick={() => toggleInputtoken0Modal(true)}
+              >
+                {farmData.inputToken0.address.length > 0 ? (
+                  <>
+                    <img src={farmData.inputToken0.logoURI} alt={farmData.inputToken0.symbol} width="28px" height="28px" style={{ marginRight: '10px' }} />
+                    <p className='token-symbol-container'>{farmData.inputToken0?.symbol}</p>
+                  </>
+                ) : (
+                  <p>Select Token</p>
                 )}
-                renderInput={(params) => (
-                  <Box
-                    ref={params.InputProps.ref}
-                    className={`currencyButton ${farmData.inputToken0.address.length ? 'currencySelected' : 'noCurrency'
-                      }`}
-                  // onClick={handleOpenModal}
-                  >
-                    {farmData.inputToken0.address.length > 0 ? (
-                      <>
-                        <img src={farmData.inputToken0.logoURI} alt={farmData.inputToken0.symbol} width="28px" height="28px" style={{ marginRight: '10px' }} />
-                        <StyledInput
-                          placeholder={farmData.inputToken0?.symbol}
-                          type="text"
-                          {...params.inputProps}
-                          style={{
-                            fontSize: '16px',
-                            fontWeight: '800',
-                            background: 'transparent',
-                            border: 'none',
-                            color: '#c7cad9',
-                          }}
-                        />
-                      </>
-                    ) : (
-                      <StyledInput
-                        placeholder='Select Token 0'
-                        type="text"
-                        {...params.inputProps}
-                        style={{
-                          fontSize: '16px',
-                          fontWeight: '800',
-                          background: 'transparent',
-                          border: 'none',
-                          color: '#c7cad9',
-                        }}
-                      />
-                    )}
-                  </Box>
+              </Box>
+              <AddCircleOutlineIcon sx={{ color: '#696C80', fontSize: '40px' }} />
+              <Box
+                className={`currencyButton ${farmData.inputToken1.address.length > 0 ? 'currencySelected' : 'noCurrency'
+                  }`}
+                onClick={() => toggleInputtoken1Modal(true)}
+              >
+                {farmData.inputToken1.address.length > 0 ? (
+                  <>
+                    <img src={farmData.inputToken1.logoURI} alt={farmData.inputToken1.symbol} width="28px" height="28px" style={{ marginRight: '10px' }} />
+                    <p className='token-symbol-container'>{farmData.inputToken1?.symbol}</p>
+                  </>
+                ) : (
+                  <p>Select Token</p>
                 )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={12} md={6} lg={6}>
-              <Autocomplete
-                id="country-select-demo"
-                sx={{ width: 300 }}
-                onChange={(event, newValue) => selectToken(newValue, 'inputToken1')}
-                options={tokens}
-                autoHighlight
-                getOptionLabel={(option) => option.name}
-                renderOption={(props, option) => (
-                  <Stack {...props} style={{ padding: '6px 18px', cursor: 'pointer' }} direction="row" alignItems="center">
-                    <img src={option.logoURI} alt={option.symbol} width="28px" height="28px" style={{ marginRight: '10px' }} />
-                    <p style={{
-                      fontSize: '16px',
-                      fontWeight: '800'
-                    }}>
-                      {`${option.name} ( ${option.symbol} )`}
-                    </p>
-                  </Stack>
-                )}
-                renderInput={(params) => (
-                  <Box
-                    ref={params.InputProps.ref}
-                    className={`currencyButton ${farmData.inputToken1.address.length ? 'currencySelected' : 'noCurrency'
-                      }`}
-                  // onClick={handleOpenModal}
-                  >
-                    {farmData.inputToken1.address.length > 0 ? (
-                      <>
-                        <img src={farmData.inputToken1.logoURI} alt={farmData.inputToken1.symbol} width="28px" height="28px" style={{ marginRight: '10px' }} />
-                        <StyledInput
-                          placeholder={farmData.inputToken1?.symbol}
-                          type="text"
-                          {...params.inputProps}
-                          style={{
-                            fontSize: '16px',
-                            fontWeight: '800',
-                            background: 'transparent',
-                            border: 'none',
-                            color: '#c7cad9',
-                          }}
-                        />
-                      </>
-                    ) : (
-                      <StyledInput
-                        placeholder='Select Token 1'
-                        type="text"
-                        {...params.inputProps}
-                        style={{
-                          fontSize: '16px',
-                          fontWeight: '800',
-                          background: 'transparent',
-                          border: 'none',
-                          color: '#c7cad9',
-                        }}
-                      />
-                    )}
-                  </Box>
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={12} md={6} lg={12}>
+              </Box>
+            </Stack>
+            <div style={{ marginTop: '25px' }}>
               {(farmData.inputToken0.address.length > 0 || farmData.inputToken1.address.length > 0) && <SubTitle>Selected Pair of Tokens</SubTitle>}
-              <Grid container spacing={3} justifyContent="center">
-                {farmData.inputToken0.address && farmData.inputToken0.address.length > 0 &&
-                  <Grid item xs={12} sm={12} md={6} lg={6}>
-                    <TokenContainer>
-                      <Stack direction="row" spacing={2}>
-                        <img src={farmData.inputToken0.logoURI} alt="CNT" width="28px" height="28px" style={{ objectFit: 'contain' }} />
-                        <Stack>
-                          <TokenTitle>
-                            {`${farmData.inputToken0.name} ( ${farmData.inputToken0.symbol.toUpperCase()} )`}
-                          </TokenTitle>
-                          <TokenTitle>
-                            {farmData.inputToken0.address}
-                          </TokenTitle>
-                        </Stack>
-                      </Stack>
-                    </TokenContainer>
-                  </Grid>
-                }
-                {farmData.inputToken1.address && farmData.inputToken1.address.length > 0 &&
-                  <Grid item xs={12} sm={12} md={6} lg={6}>
-                    <TokenContainer>
-                      <Stack direction="row" spacing={2}>
-                        <img src={farmData.inputToken1.logoURI} alt="CNT" width="28px" height="28px" style={{ objectFit: 'contain' }} />
-                        <Stack>
-                          <TokenTitle>
-                            {`${farmData.inputToken1.name} ( ${farmData.inputToken1.symbol.toUpperCase()} )`}
-                          </TokenTitle>
-                          <TokenTitle>
-                            {farmData.inputToken1.address}
-                          </TokenTitle>
-                        </Stack>
-                      </Stack>
-                    </TokenContainer>
-                  </Grid>
-                }
-                <Grid item xs={12} sm={12} md={6} lg={6}>
-                  {isValidPair &&
-                    <TokenContainer style={{ borderRadius: '8px' }}>
-                      <Stack direction="row" justifyContent="center" alignItems="center">
-                        <img src={farmData.inputToken0.logoURI} alt="CNT" width="28px" height="28px" style={{ objectFit: 'contain' }} />
-                        <img src={farmData.inputToken1.logoURI} alt="CNT" width="28px" height="28px" style={{ objectFit: 'contain' }} />
-                      </Stack>
-                      <Stack>
-                        <TokenTitle style={{ fontSize: '18px', textAlign: 'center' }}>
-                          Pair: {farmData.inputToken.address}
-                        </TokenTitle>
-                        <TokenTitle style={{ color: '#448aff', textAlign: 'center', fontSize: '16px' }}>
-                          Balance: {farmData.inputToken.lpBal} LP
-                        </TokenTitle>
-                      </Stack>
-                    </TokenContainer>
-                  }
-                  {isValidPair === false &&
-                    <TokenContainer style={{ borderRadius: '60px', border: '1px solid #ff5252', background: 'rgba(255,82,82,.1)' }}>
-                      <TokenTitle style={{ color: '#ff5252', textAlign: 'center', fontSize: '16px' }}>
-                        Given Set of Pairs doesn't contain any valid Pair
-                      </TokenTitle>
-                    </TokenContainer>
-                  }
-                </Grid>
-              </Grid>
-            </Grid>
-          </Grid>
-          <SubTitle>Enter Reward Token Address</SubTitle>
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={12} md={6} lg={6}>
-              <Autocomplete
-                id="country-select-demo"
-                sx={{ width: 300 }}
-                onChange={(event, newValue) => selectToken(newValue, 'rewardToken')}
-                options={tokens}
-                autoHighlight
-                getOptionLabel={(option) => option.name}
-                renderOption={(props, option) => (
-                  <Stack {...props} style={{ padding: '6px 18px', cursor: 'pointer' }} direction="row" alignItems="center">
-                    <img src={option.logoURI} alt={option.symbol} width="28px" height="28px" style={{ marginRight: '10px' }} />
-                    <p style={{
-                      fontSize: '16px',
-                      fontWeight: '800'
-                    }}>
-                      {`${option.name} ( ${option.symbol} )`}
-                    </p>
-                  </Stack>
-                )}
-                renderInput={(params) => (
-                  <Box
-                    ref={params.InputProps.ref}
-                    className={`currencyButton ${farmData.rewardToken.address.length ? 'currencySelected' : 'noCurrency'
-                      }`}
-                  // onClick={handleOpenModal}
-                  >
-                    {farmData.rewardToken.address.length > 0 ? (
-                      <>
-                        <img src={farmData.rewardToken.logoURI} alt={farmData.rewardToken.symbol} width="28px" height="28px" style={{ marginRight: '10px' }} />
-                        <StyledInput
-                          placeholder={farmData.rewardToken?.symbol}
-                          type="text"
-                          {...params.inputProps}
-                          style={{
-                            fontSize: '16px',
-                            fontWeight: '800',
-                            background: 'transparent',
-                            border: 'none',
-                            color: '#c7cad9',
-                          }}
-                        />
-                      </>
-                    ) : (
-                      <StyledInput
-                        placeholder='Select Reward Token'
-                        type="text"
-                        {...params.inputProps}
-                        style={{
-                          fontSize: '16px',
-                          fontWeight: '800',
-                          background: 'transparent',
-                          border: 'none',
-                          color: '#c7cad9',
-                        }}
-                      />
-                    )}
-                  </Box>
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={12} md={6} lg={6}>
-              {farmData.rewardToken.address && farmData.rewardToken.address.length > 0 &&
-                <TokenContainer style={{ width: 'fit-content', padding: '10px 20px', borderRadius: '8px' }}>
-                  <Stack direction="row" spacing={2}>
-                    <img src={farmData.rewardToken.logoURI} alt="CNT" width="28px" height="28px" style={{ objectFit: 'contain' }} />
+              <div>
+                {isValidPair &&
+                  <TokenContainer style={{ borderRadius: '8px' }}>
+                    <Stack direction="row" justifyContent="center" alignItems="center">
+                      <img src={farmData.inputToken0.logoURI} alt="CNT" width="28px" height="28px" style={{ objectFit: 'contain' }} />
+                      <img src={farmData.inputToken1.logoURI} alt="CNT" width="28px" height="28px" style={{ objectFit: 'contain' }} />
+                    </Stack>
                     <Stack>
-                      <TokenTitle style={{ fontSize: '16px' }}>
-                        {`${farmData.rewardToken.name} ( ${farmData.rewardToken.symbol.toUpperCase()} )`}
+                      <TokenTitle style={{ fontSize: '18px', textAlign: 'center' }}>
+                        Pair: {farmData.inputToken.address}
                       </TokenTitle>
-                      <TokenTitle style={{ color: '#448aff', fontSize: '16px' }}>
-                        Balance: {farmData.rewardToken.balance} {farmData.rewardToken.symbol.toUpperCase()}
-                      </TokenTitle>
-                      <TokenTitle>
-                        {farmData.rewardToken.address}
+                      <TokenTitle style={{ color: '#448aff', textAlign: 'center', fontSize: '16px' }}>
+                        Balance: {farmData.inputToken.lpBal} LP
                       </TokenTitle>
                     </Stack>
-                  </Stack>
-                </TokenContainer>
-              }
+                  </TokenContainer>
+                }
+                {isValidPair === false &&
+                  <TokenContainer style={{ borderRadius: '60px', border: '1px solid #ff5252', background: 'rgba(255,82,82,.1)' }}>
+                    <TokenTitle style={{ color: '#ff5252', textAlign: 'center', fontSize: '16px' }}>
+                      Given Set of Pairs doesn't contain any valid Pair
+                    </TokenTitle>
+                  </TokenContainer>
+                }
+              </div>
+            </div>
+            <SubTitle>Enter Reward Token Address</SubTitle>
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={12} md={6} lg={6}>
+                <Box
+                  className={`currencyButton ${farmData.rewardToken.address.length > 0 ? 'currencySelected' : 'noCurrency'
+                    }`}
+                  onClick={() => toggleRewardTokenModal(true)}
+                >
+                  {farmData.rewardToken.address.length > 0 ? (
+                    <>
+                      <img src={farmData.rewardToken.logoURI} alt={farmData.rewardToken.symbol} width="28px" height="28px" style={{ marginRight: '10px' }} />
+                      <p className='token-symbol-container'>{farmData.rewardToken?.symbol}</p>
+                    </>
+                  ) : (
+                    <p>Select Token</p>
+                  )}
+                </Box>
+              </Grid>
+              <Grid item xs={12} sm={12} md={6} lg={6}>
+                {farmData.rewardToken.address && farmData.rewardToken.address.length > 0 &&
+                  <TokenContainer style={{ width: 'fit-content', padding: '10px 20px', borderRadius: '8px' }}>
+                    <Stack direction="row" spacing={2}>
+                      <img src={farmData.rewardToken.logoURI} alt="CNT" width="28px" height="28px" style={{ objectFit: 'contain' }} />
+                      <Stack>
+                        <TokenTitle style={{ fontSize: '16px' }}>
+                          {`${farmData.rewardToken.name} ( ${farmData.rewardToken.symbol.toUpperCase()} )`}
+                        </TokenTitle>
+                        <TokenTitle style={{ color: '#448aff', fontSize: '16px' }}>
+                          Balance: {farmData.rewardToken.balance} {farmData.rewardToken.symbol.toUpperCase()}
+                        </TokenTitle>
+                        <TokenTitle>
+                          {farmData.rewardToken.address}
+                        </TokenTitle>
+                      </Stack>
+                    </Stack>
+                  </TokenContainer>
+                }
+              </Grid>
             </Grid>
-          </Grid>
-          <SubTitle>Enter Reward Details</SubTitle>
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={12} md={6} lg={6}>
+            <div>
+              <SubTitle>Enter Reward Amount</SubTitle>
               <CssTextField
                 fullWidth
                 onChange={(event) => handleChange(event, "amount")}
                 value={farmData.amount}
                 type="number" id="outlined-basic"
-                label="Reward Amount"
+                placeholder="Reward Amount"
                 variant="outlined" />
-            </Grid>
-            <Grid item xs={12} sm={12} md={6} lg={6}>
+            </div>
+            <div>
+              <SubTitle>Select Start Date and Time</SubTitle>
               <InputWrapper>
                 <DatePicker
                   selected={formatUTC(farmData.rewardDuration, true)}
@@ -745,29 +618,30 @@ function CreateFarm(props: any) {
                   customInput={<ExampleCustomInput />}
                 />
               </InputWrapper>
-            </Grid>
-          </Grid>
-          <Stack sx={{ marginTop: '20px' }} justifyContent="center" alignItems="center">
-            <Button
-              disabled={pendingTxn}
-              onClick={onCreateFarm}
-              sx={{
-                background: '#448aff',
-                color: '#ffffff',
-                width: '200px',
-                height: '48px',
-                padding: '6px 8px',
-                borderRadius: '30px',
-                fontFamily: 'Inter',
-                fontWeight: '700',
-              }}
-            >
-              {pendingTxn ? 'Processing...' : 'Create Farm'}
-            </Button>
-          </Stack>
-        </Card>
-      </div >
-    </Container >
+            </div>
+            <Stack sx={{ marginTop: '20px' }} justifyContent="center" alignItems="center">
+              <Button
+                fullWidth
+                disabled={pendingTxn || disabledButton}
+                onClick={onCreateFarm}
+                sx={{
+                  background: (pendingTxn || disabledButton) ? '#3E4252' : '#448aff',
+                  color: '#ffffff',
+                  width: '200px',
+                  height: '48px',
+                  padding: '6px 8px',
+                  borderRadius: '10px',
+                  fontFamily: 'Inter',
+                  fontWeight: '700',
+                }}
+              >
+                {pendingTxn ? 'Processing...' : 'Create Farm'}
+              </Button>
+            </Stack>
+          </Card>
+        </Stack >
+      </Container >
+    </div>
   )
 }
 export default withRouter(CreateFarm)
