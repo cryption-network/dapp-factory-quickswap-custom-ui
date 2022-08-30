@@ -6,6 +6,7 @@ import BigNumber from "bignumber.js";
 import { ethers, Contract } from "ethers";
 import { styled as muiStyled } from '@mui/material/styles';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import styled from 'styled-components';
 import { useCreateFarm, LP_IMAGE_SEPERATOR_STRING } from "@cryption/dapp-factory-sdk";
 import DatePicker from "react-datepicker";
@@ -25,6 +26,7 @@ import {
 import useActiveWeb3React from "../../hooks";
 import TokenList from '../../components/TokenList';
 import PoweredByCryptionNetwork from '../../images/PoweredByCryptionNetwork.png';
+import Modal from '../../components/Modal';
 import './index.css';
 
 const TitleText = styled.p`
@@ -164,6 +166,7 @@ function CreateFarm(props: any) {
   const [tokens, setTokens] = useState([]);
   const [pendingTxn, togglePendingTx] = useState(false);
   const [showInputtoken0Modal, toggleInputtoken0Modal] = useState(false);
+  const [successModal, toggleSuccessModal] = useState(false);
   const [showInputtoken1Modal, toggleInputtoken1Modal] = useState(false);
   const [showRewardTokenModal, toggleRewardTokenModal] = useState(false);
   const [allowanceAmount, setAllowanceAmount] = useState(0);
@@ -203,7 +206,7 @@ function CreateFarm(props: any) {
     },
   });
 
-  const { launchFarmOrPool } = useCreateFarm(1);
+  const { launchFarmOrPool, txnHash } = useCreateFarm(1);
   const { chainId, account } = useActiveWeb3React();
   const factoryContractAddress = getQuickswapSingleRewardFactory(chainId || 80001);
   // const factoryContract = useQuikcswapSingleRewardContract();
@@ -238,6 +241,7 @@ function CreateFarm(props: any) {
       try {
         await launchFarmOrPool(rewardToken, inputToken, "", 0, 0, "0", "0", "", "0", routerAddress, rewardTokenAmountWei, null, 0, differenceInSecondsForRewardDuration, null, 1, true);
         togglePendingTx(false)
+        toggleSuccessModal(true)
       } catch (error) {
         togglePendingTx(false)
         console.error('error', error)
@@ -450,6 +454,48 @@ function CreateFarm(props: any) {
       <div className='heroBkg'>
         <img src="https://quickswap.exchange/static/media/heroBkg.fbe399ae.svg" alt="heroimage" />
       </div>
+      <Modal open={successModal} title="Transcation Successfull" onClose={() => toggleSuccessModal(false)}>
+        <Stack alignItems="center" justifyContent="center">
+          <CheckCircleRoundedIcon sx={{ color: '#11A569', fontSize: '50px' }} />
+          <TitleText style={{ fontSize: '18px', marginTop: '10px', marginBottom: '20px' }}>
+            Farm Created Successfully !
+          </TitleText>
+          <Stack alignItems="center" direction="row" spacing={3} justifyContent="space-evenly">
+            <Button
+              fullWidth
+              onClick={() => window.open(`https://mumbai.polygonscan.com/tx/${txnHash}`, '_blank')}
+              sx={{
+                background: '#282D3D',
+                color: '#ffffff',
+                width: '200px',
+                height: '48px',
+                padding: '6px 8px',
+                borderRadius: '10px',
+                fontFamily: 'Inter',
+                fontWeight: '700',
+              }}
+            >
+              View Transcation
+            </Button>
+            <Button
+              fullWidth
+              onClick={() => toggleSuccessModal(false)}
+              sx={{
+                background: '#EBECF2',
+                color: '#1C1E29',
+                width: '200px',
+                height: '48px',
+                padding: '6px 8px',
+                borderRadius: '10px',
+                fontFamily: 'Inter',
+                fontWeight: '700',
+              }}
+            >
+              Close
+            </Button>
+          </Stack>
+        </Stack>
+      </Modal>
       <Container maxWidth="lg"
         sx={{
           paddingTop: '30px', position: 'relative', zIndex: 2

@@ -9,6 +9,7 @@ import erc20Abi from "../config/constants/abi/erc20.json";
 import polydexAbi from "../config/constants/abi/polydexLp.json";
 import quickswapsinglerewardAbi from "../config/constants/abi/quickswapfarmfactoryAbi.json";
 import factoryAbi from "../config/constants/abi/quickswafactory.json";
+import quickswapsinglerewardFarmAbi from "../config/constants/abi/quickswapfarmsSingleReward.json";
 
 export const getContract: (abi: any, address: string, web3: Web3) => Contract =
   (abi: any, address: string, web3: Web3) => {
@@ -33,4 +34,8 @@ export const getQuickswapSingleRewardContract = (
 };
 export const getFactoryContract = (web3: Web3, chainId: number) => {
   return getContract(factoryAbi, getFactoryAddress(chainId), web3);
+};
+
+export const getQuickswapSingleFarmContract = (address: string, web3: Web3) => {
+  return getContract(quickswapsinglerewardFarmAbi, address, web3);
 };

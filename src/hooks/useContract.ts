@@ -4,6 +4,7 @@ import {
   getERC20Contract,
   getQuickswapSingleRewardContract,
   getFactoryContract,
+  getQuickswapSingleFarmContract,
 } from "../utils/contractHelpers";
 import useActiveWeb3React from "../hooks";
 
@@ -26,5 +27,12 @@ export const useFactoryContract = () => {
   return useMemo(
     () => getFactoryContract(web3, chainId || 137),
     [chainId, web3]
+  );
+};
+export const useQuickswapSingleRewardContract = (address: string) => {
+  const web3 = useWeb3();
+  return useMemo(
+    () => getQuickswapSingleFarmContract(address, web3),
+    [address, web3]
   );
 };
