@@ -19,6 +19,7 @@ import { getWalletKeys, shortenAddress } from './utils'
 import PoweredByCryptionNetwork from './images/PoweredByCryptionNetwork.png';
 import './App.css';
 import { SUPPORTED_WALLETS } from './config';
+import MetamaskIcon from "./images/metamask.png";
 import styled from 'styled-components';
 
 const ConnectedWalletDiv = styled.div`
@@ -68,6 +69,7 @@ function App() {
     const name = getWalletKeys(connector).map(
       (k) => SUPPORTED_WALLETS[k].name,
     )[0];
+    console.log({ name });
     return (
       <span style={{ fontSize: '14px', fontWeight: '800', fontFamily: 'Inter' }}>Connected with {name}</span>
     );
@@ -104,9 +106,12 @@ function App() {
         }
       });
   };
-  const icon = getWalletKeys(connector).map(
+  let icon = getWalletKeys(connector).map(
     (k) => SUPPORTED_WALLETS[k].iconName,
   )[0];
+  if (icon === undefined) {
+    icon = MetamaskIcon;
+  }
   const getOptions = () => {
     return Object.keys(SUPPORTED_WALLETS).map((key) => {
       const option = SUPPORTED_WALLETS[key];

@@ -353,7 +353,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
           </Flex>
         </Box>
         <Box width={0.2} textAlign='center'>
-          <Text bold fontSize="18px" color="primary">
+          <Text bold fontSize="18px" color="primary" fontFamily="Inter">
             <CountUp
               end={liquidity?.toNumber()}
               duration={1}
@@ -363,7 +363,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
           </Text>
         </Box>
         <Box width={0.15} textAlign='center'>
-          <Text bold fontSize="18px" color="success">
+          <Text bold fontSize="18px" color="success" fontFamily="Inter">
             <CountUp
               end={apy?.toNumber()}
               duration={1}
@@ -374,7 +374,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
         </Box>
         <Box width={0.35} textAlign='center' style={{ padding: '0px 16px' }}>
           <Flex flexDirection="column" alignItems="flex-end" pl="16px">
-            <Text bold fontSize="18px">
+            <Text bold fontSize="18px" fontFamily="Inter">
               {earned.toLocaleString()}
             </Text>
             <Flex alignItems="center">
@@ -390,7 +390,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
                   <HelpOutlineIcon />
                 </ImageContainer>
               )}
-              <Text fontSize="14px" color="gray" ml="10px">
+              <Text fontSize="14px" color="gray" ml="10px" fontFamily="Inter">
                 {farm.rewardToken.symbol}
               </Text>
             </Flex>
@@ -491,7 +491,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
         </FarmDetails>
       }
       <BottomRow>
-        <Text>
+        <Text fontFamily="Inter">
           Start Time : {new Date(Number(farm.periodFinish) * 1000).toUTCString()}
         </Text>
       </BottomRow>

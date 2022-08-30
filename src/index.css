@@ -57,3 +57,7 @@ iframe {
 .sc-eCYdqJ {
   background: transparent !important;
 }
+body,
+span {
+  font-family: Inter !important;
+}
