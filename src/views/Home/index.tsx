@@ -64,7 +64,7 @@ const StyledToggleButtonGroup = muiStyled(ToggleButtonGroup)(() => ({
   },
 }));
 function Home(props: any) {
-  const latestBlockNumber = Math.floor(new Date().getTime() / 1000);
+  const currentDate = Math.floor(new Date().getTime() / 1000);
   const { chainId, account } = useActiveWeb3React();
   const [allFarms, setAllFarms] = useState<any>([]);
   const [activeFarms, setActiveFarms] = useState([]);
@@ -95,18 +95,19 @@ function Home(props: any) {
     getFarms()
   }, [account, chainId]);
   useEffect(() => {
+    console.log({ allFarms })
     if (allFarms.length > 0) {
       const active = allFarms.filter(
-        (farm: { isquickswapSingleReward: any; rewardToken: { endBlock: any; }; }) => !farm.isquickswapSingleReward && farm.rewardToken && farm.rewardToken.endBlock ? latestBlockNumber < Number(farm.rewardToken.endBlock) : true
+        (farm: { periodFinish: any; }) => farm.periodFinish && currentDate > Number(farm.periodFinish)
       );
 
       const upcoming = allFarms.filter(
-        (farm: { isquickswapSingleReward: any; rewardToken: { endBlock: any; startBlock: any; }; }) => !farm.isquickswapSingleReward && farm.rewardToken && farm.rewardToken.endBlock ? latestBlockNumber < Number(farm.rewardToken.startBlock) : false
+        (farm: { periodFinish: any; }) => farm.periodFinish && currentDate < Number(farm.periodFinish)
       );
 
-      const finished = allFarms.filter(
-        (farm: { isquickswapSingleReward: any; rewardToken: { endBlock: any; }; }) => !farm.isquickswapSingleReward && farm.rewardToken && farm.rewardToken.endBlock ? latestBlockNumber > Number(farm.rewardToken.endBlock) : false
-      );
+      // const finished = allFarms.filter(
+      //   (farm: { isquickswapSingleReward: any; rewardToken: { endBlock: any; }; }) => !farm.isquickswapSingleReward && farm.rewardToken && farm.rewardToken.endBlock ? latestBlockNumber > Number(farm.rewardToken.endBlock) : false
+      // );
 
       const staked = allFarms.filter((farm: { stakedBalance: BigNumber.Value; }) =>
         new BigNumber(farm.stakedBalance).isGreaterThan(0)
@@ -114,10 +115,10 @@ function Home(props: any) {
 
       setActiveFarms(() => active);
       setUpcomingFarms(() => upcoming);
-      setFinishedFarms(() => finished);
+      setFinishedFarms(() => []);
       setStakedFarms(() => staked);
     }
-  }, [allFarms, latestBlockNumber]);
+  }, [allFarms, currentDate]);
   return (
     <div>
       <div className='heroBkg'>

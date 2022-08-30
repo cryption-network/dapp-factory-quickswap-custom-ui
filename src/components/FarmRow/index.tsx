@@ -30,6 +30,8 @@ const CustomCard = styled(Box)`
   border-radius: 10px;
   font-family:'Inter';
   padding: 16px 0;
+  padding-bottom: 50px;
+  position: relative;
   cursor: pointer;
   background: ${({ theme }) => theme.colors.cardBg};
 `;
@@ -59,6 +61,14 @@ const ImageContainer = styled.div`
   border-radius: 50%;
   width: 40px;
   height: 40px;
+`;
+const BottomRow = styled.div`
+  background: #3E4252;
+  padding: 5px 16px;
+  border-radius: 0px 0px 10px 10px;
+  position: absolute;
+  bottom: 0px;
+  width: 100%;
 `;
 interface IFarmCard {
   farm: any;
@@ -276,7 +286,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
         } else {
           try {
             const token0ImgLink = farm.inputTokenURL;
-            if (token0ImgLink && token0ImgLink.length>0) {
+            if (token0ImgLink && token0ImgLink.length > 0) {
               await fetch(token0ImgLink);
               setToken0Img(token0ImgLink);
             } else {
@@ -480,6 +490,11 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
           </Box>
         </FarmDetails>
       }
+      <BottomRow>
+        <Text>
+          Start Time : {new Date(Number(farm.periodFinish) * 1000).toUTCString()}
+        </Text>
+      </BottomRow>
     </CustomCard>
   )
 }
