@@ -337,7 +337,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
             </Flex>
             <Box ml={1.5}>
               <Text fontFamily="Inter">
-                {`${farm.token0Data.symbol} / ${farm.token0Data.symbol} LP`}
+                {`${farm.token0Data.symbol} / ${farm.token1Data.symbol} LP`}
               </Text>
             </Box>
           </Flex>
