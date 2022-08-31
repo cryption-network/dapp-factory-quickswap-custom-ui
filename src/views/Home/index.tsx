@@ -13,6 +13,7 @@ import {
 } from "@cryption/dapp-factory-sdk";
 import useActiveWeb3React from "../../hooks";
 import FarmRow from '../../components/FarmRow';
+import PoweredByCryptionNetwork from '../../images/PoweredByCryptionNetwork.png';
 
 const TitleText = styled.p`
   color: #c7cad9;
@@ -52,17 +53,20 @@ const FarmRowContainer = styled(Box)`
 const StyledToggleButtonGroup = muiStyled(ToggleButtonGroup)(() => ({
   '& .MuiToggleButtonGroup-grouped': {
     border: '1px solid #3E4252',
+    fontSize: '14px',
     fontFamily: 'Inter',
     borderRadius: '8px',
-    color: '#ffffff',
+    color: '#626680',
     '&.Mui-disabled': {
       border: 0,
     },
     '&.Mui-selected': {
       background: '#3E4252',
+      color: '#B6B9CC',
     },
   },
 }));
+
 function Home(props: any) {
   const currentDate = Math.floor(new Date().getTime() / 1000);
   const { chainId, account } = useActiveWeb3React();
@@ -121,6 +125,9 @@ function Home(props: any) {
   }, [allFarms, currentDate]);
   return (
     <div>
+      <div style={{ position: 'absolute', bottom: '20px', right: '20px' }}>
+        <img src={PoweredByCryptionNetwork} alt="Dapp factory" width="200px" />
+      </div>
       <div className='heroBkg'>
         <img src="https://quickswap.exchange/static/media/heroBkg.fbe399ae.svg" alt="heroimage" />
       </div>
@@ -132,17 +139,17 @@ function Home(props: any) {
           <Button
             onClick={() => props.history.push('/create')}
             sx={{
-              backgroundImage: 'linear-gradient(105deg,#448aff 3%,#004ce6)',
+              backgroundImage: 'linear-gradient(105deg,#448aff 3%,#448AFF)',
               color: '#ffffff',
               height: '48px',
               fontFamily: 'Inter',
               fontWeight: '700',
               padding: '6px 18px',
               marginBottom: '20px',
-              borderRadius: '30px',
+              borderRadius: '10px',
             }}
           >
-            Create Farm
+            Create a Farm
           </Button>
         </Stack>
       </Card>
@@ -170,7 +177,7 @@ function Home(props: any) {
                 <ToggleButton value="ended">Ended</ToggleButton>
               </StyledToggleButtonGroup>
               <Flex marginLeft="15x" alignItems="center">
-                <Text color="gray" fontSize="16px" fontWeight="800" marginRight="10px" fontFamily="Inter">
+                <Text style={{ color: '#626680' }} fontSize="16px" fontWeight="800" marginRight="10px" fontFamily="Inter">
                   Staked Only
                 </Text>
                 <Toggle checked={stakedOnly} onChange={() => setIsStake(!stakedOnly)} scale="sm" />

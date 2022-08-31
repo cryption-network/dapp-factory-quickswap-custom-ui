@@ -5,7 +5,6 @@ import { Container, Grid, TextField, Stack, Button, Box, IconButton } from '@mui
 import BigNumber from "bignumber.js";
 import { ethers, Contract } from "ethers";
 import { styled as muiStyled } from '@mui/material/styles';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import styled from 'styled-components';
 import { useCreateFarm, LP_IMAGE_SEPERATOR_STRING } from "@cryption/dapp-factory-sdk";
@@ -25,28 +24,46 @@ import {
 } from "../../utils/addressHelpers";
 import useActiveWeb3React from "../../hooks";
 import TokenList from '../../components/TokenList';
+import getCoinGeckoIds from "../../utils/getCoinGeckoIds";
+import getCoinGeckoPrice from "../../utils/getCoinGeckoPrice";
 import PoweredByCryptionNetwork from '../../images/PoweredByCryptionNetwork.png';
 import Modal from '../../components/Modal';
 import './index.css';
+import calendarIcon from '../../images/calendar.png';
+import pairIcon from '../../images/toggle.png';
+import rewardIcon from '../../images/reward.png';
+import rewardAmountIcon from '../../images/rewardAmount.png';
+import addIcon from '../../images/addIcon.png';
+import { MIN_REWARDS } from '../../config';
 
 const TitleText = styled.p`
   color: #c7cad9;
   margin: 0;
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 500;
   font-family: Inter;
   line-height: 1.43;
   text-align: center;
 `;
 const SubTitle = styled.p`
   color: #c7cad9;
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 500;
   font-family: Inter;
   line-height: 1.43;
   text-align: left;
   margin-top: 25px;
-  margin-bottom: 20px !important;
+  margin-bottom: 20px;
+`;
+const LinkTitle = styled.a`
+  color: #4489FF;
+  font-size: 14px;
+  font-weight: 500;
+  margin-left: 5px;
+  margin-right: 5px;
+  font-family: Inter;
+  line-height: 1.43;
+  text-align: left;
 `;
 const Card = styled.div`
   width: fit-content;
@@ -173,6 +190,7 @@ function CreateFarm(props: any) {
   const [farmData, setFarmData] = useState({
     amount: "",
     rewardDuration: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
+    minRewardAmount: 0,
     feeAddress: "",
     referrer: "",
     inputToken0: {
@@ -352,7 +370,6 @@ function CreateFarm(props: any) {
     }
   }
   const selectToken = async (token, title) => {
-    console.log({ token, title })
     const defaultValues = {
       address: "",
       name: "",
@@ -389,6 +406,17 @@ function CreateFarm(props: any) {
         .allowance(account, factoryContractAddress)
         .call();
       setAllowanceAmount(allowance);
+      const coingeckoIds = await getCoinGeckoIds();
+      const token0USD = await getCoinGeckoPrice(
+        token.symbol.toLowerCase(),
+        token.name,
+        coingeckoIds
+      );
+      const minimumRewards = MIN_REWARDS / token0USD;
+      setFarmData(currentfarmData => ({
+        ...currentfarmData,
+        minRewardAmount: minimumRewards
+      }));
     }
   }
   useEffect(() => {
@@ -446,7 +474,7 @@ function CreateFarm(props: any) {
     getToknList()
   }, [chainId])
   let disabledButton = true;
-  if (farmData.inputToken.address.length > 0 && farmData.rewardToken.address.length > 0 && parseFloat(farmData.amount) > 0) {
+  if (farmData.inputToken.address.length > 0 && farmData.rewardToken.address.length > 0 && parseFloat(farmData.amount) > 0 && parseFloat(farmData.amount) >= parseFloat(farmData.minRewardAmount)) {
     disabledButton = false
   }
   return (
@@ -527,7 +555,7 @@ function CreateFarm(props: any) {
               <IconButton onClick={() => props.history.push('/')}>
                 <ArrowBackIcon sx={{ color: '#636780' }} />
               </IconButton>
-              <TitleText style={{ fontSize: '25px' }}>
+              <TitleText style={{ fontSize: '20px' }}>
                 Build a Farm
               </TitleText>
               <img src={PoweredByCryptionNetwork} alt="Dapp factory" width="200px" />
@@ -535,7 +563,10 @@ function CreateFarm(props: any) {
             <TitleText style={{ marginBottom: '30px' }}>
               Create Quickswap Single Reward Farm Powered by DappFactoy
             </TitleText>
-            <SubTitle style={{ textAlign: 'left' }}>Select Pair</SubTitle>
+            <Stack direction="row" alignItems="center">
+              <img src={pairIcon} width="24px" alt="calendar" style={{ marginRight: '10px' }} />
+              <SubTitle style={{ textAlign: 'left' }}>Select Pair</SubTitle>
+            </Stack>
             <Stack spacing={2} alignItems="center" justifyContent="space-between" direction="row" sx={{ marginBottom: '40px', margintop: '20px' }}>
               <Box
                 className={`currencyButton ${farmData.inputToken0.address.length > 0 ? 'currencySelected' : 'noCurrency'
@@ -551,7 +582,7 @@ function CreateFarm(props: any) {
                   <p>Select Token</p>
                 )}
               </Box>
-              <AddCircleOutlineIcon sx={{ color: '#696C80', fontSize: '40px' }} />
+              <img src={addIcon} alt="add" width="32px" />
               <Box
                 className={`currencyButton ${farmData.inputToken1.address.length > 0 ? 'currencySelected' : 'noCurrency'
                   }`}
@@ -595,7 +626,10 @@ function CreateFarm(props: any) {
                 }
               </div>
             </div>
-            <SubTitle>Enter Reward Token Address</SubTitle>
+            <Stack direction="row" alignItems="center">
+              <img src={rewardIcon} width="24px" alt="calendar" style={{ marginRight: '10px' }} />
+              <SubTitle>Enter Reward Token Address</SubTitle>
+            </Stack>
             <Grid container spacing={3}>
               <Grid item xs={12} sm={12} md={6} lg={6}>
                 <Box
@@ -613,7 +647,7 @@ function CreateFarm(props: any) {
                   )}
                 </Box>
               </Grid>
-              <Grid item xs={12} sm={12} md={6} lg={6}>
+              <Grid item xs={12} sm={12} md={12} lg={12}>
                 {farmData.rewardToken.address && farmData.rewardToken.address.length > 0 &&
                   <TokenContainer style={{ width: 'fit-content', padding: '10px 20px', borderRadius: '8px' }}>
                     <Stack direction="row" spacing={2}>
@@ -635,7 +669,10 @@ function CreateFarm(props: any) {
               </Grid>
             </Grid>
             <div>
-              <SubTitle>Enter Reward Amount</SubTitle>
+              <Stack direction="row" alignItems="center">
+                <img src={rewardAmountIcon} width="24px" alt="calendar" style={{ marginRight: '10px' }} />
+                <SubTitle>Enter Reward Amount</SubTitle>
+              </Stack>
               <CssTextField
                 fullWidth
                 onChange={(event) => handleChange(event, "amount")}
@@ -643,9 +680,13 @@ function CreateFarm(props: any) {
                 type="number" id="outlined-basic"
                 placeholder="Reward Amount"
                 variant="outlined" />
+              <SubTitle style={{ fontSize: '12px', color: '#696C80', marginTop: '10px' }}>*Min. Reward amount ${MIN_REWARDS} {farmData.minRewardAmount > 0 && `( ${farmData.minRewardAmount} ${farmData.rewardToken.symbol} )`}</SubTitle>
             </div>
             <div>
-              <SubTitle>Select Start Date and Time</SubTitle>
+              <Stack direction="row" alignItems="center">
+                <img src={calendarIcon} width="24px" alt="calendar" style={{ marginRight: '10px' }} />
+                <SubTitle>Select Start Date and Time</SubTitle>
+              </Stack>
               <InputWrapper>
                 <DatePicker
                   selected={formatUTC(farmData.rewardDuration, true)}
@@ -665,6 +706,15 @@ function CreateFarm(props: any) {
                 />
               </InputWrapper>
             </div>
+            <Stack>
+              <SubTitle style={{ fontSize: '14px', color: '#696C80', marginTop: '20px', textAlign: 'center', marginBottom: '0px' }}>
+                Visit
+                <LinkTitle href='https://app.dappfactory.xyz/' target="_blank">
+                  DappFactory
+                </LinkTitle>
+                to create a farm if you can't find your token
+              </SubTitle>
+            </Stack>
             <Stack sx={{ marginTop: '20px' }} justifyContent="center" alignItems="center">
               <Button
                 fullWidth

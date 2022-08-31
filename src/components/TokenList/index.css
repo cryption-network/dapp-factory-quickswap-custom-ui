@@ -4,6 +4,7 @@
   border-radius: 20px;
   display: flex;
   flex-direction: column;
+  font-family: Inter;
   background: #12131a;
   backdrop-filter: blur(9.9px);
   border: 1px solid #3e4252;
@@ -15,16 +16,19 @@
   justify-content: space-between;
   align-items: center;
   margin: 6px;
+  font-family: Inter;
 }
 
 .currencySearchWrapper>.currencySearchHeader>svg {
   fill: #686c80;
   cursor: pointer;
+  font-family: Inter;
 }
 
 .currencySearchWrapper>.currencySearchHeader>h6 {
   color: #c7cad9;
-  font-weight: 600,
+  font-weight: 600;
+  font-family: Inter;
 }
 
 .currencySearchFooter {
@@ -35,6 +39,7 @@
   bottom: 0;
   left: 0;
   z-index: 2;
+  font-family: Inter;
   pointer-events: none;
 }
 
@@ -44,6 +49,7 @@
   display: flex;
   align-items: center;
   padding: 0 12px;
+  font-family: Inter;
   margin: 12px 0;
   font-size: 16px;
   border-radius: 12px;
@@ -57,6 +63,7 @@
   box-shadow: none;
   border: none;
   outline: none;
+  font-family: Inter;
   font-size: 14px;
   font-weight: 500;
   color: #696c80;
@@ -70,6 +77,7 @@
   flex: 1;
   overflow-y: auto;
   margin-top: 16px;
+  font-family: Inter;
 }
 
 .baseWrapper {
@@ -77,12 +85,13 @@
   display: flex;
   padding: 6px 10px;
   margin: 4px 8px 4px 0;
+  font-family: Inter;
   align-items: center;
   background-color: #252833;
 }
 
 title>.span {
-
+font-family: Inter;
   margin-right: 4px;
   color: #696c80;
 
@@ -95,6 +104,7 @@ title>.span {
   max-width: 6rem;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-family: Inter;
   white-space: nowrap;
 }
 
@@ -102,16 +112,19 @@ title>.span {
   width: 100%;
   background: transparent;
   display: flex;
+  font-family: Inter;
   align-items: center;
 }
 
 .currencySymbol {
   color: #c7cad9;
-  line-height: 1,
+  line-height: 1;
+  font-family: Inter;
 }
 
 .currencyName {
   color: #696c80;
+  font-family: Inter;
 }
 
 .popoverWrapper {
@@ -136,6 +149,7 @@ title>.span {
 .styledListUrlText {
   max-width: 160px;
   opacity: 0.6;
+  font-family: Inter;
   margin-right: 0.5rem;
   font-size: 14px;
   overflow: hidden;
@@ -147,6 +161,7 @@ title>.span {
 .listRow {
   display: flex;
   align-items: center;
+  font-family: Inter;
   padding: 12px 16px;
 }
 
@@ -156,6 +171,7 @@ title>.span {
   border: 1px solid rgba(130, 177, 255, 0.08);
   border-radius: 8px;
   width: 32px;
+  font-family: Inter;
   height: 32px;
   display: flex;
   justify-content: center;

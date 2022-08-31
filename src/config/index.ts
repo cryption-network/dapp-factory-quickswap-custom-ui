@@ -264,3 +264,4 @@ export const SUPPORTED_WALLETS: { [key: string]: WalletInfo } = {
     mobile: true,
   },
 };
+export const MIN_REWARDS = 2000;
