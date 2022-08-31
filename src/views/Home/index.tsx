@@ -145,7 +145,7 @@ function Home(props: any) {
   }, [allFarms, currentDate]);
   return (
     <div>
-      <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1 }}>
+      <div style={{ position: 'fixed', top: '75px', right: '20px', zIndex: 1 }}>
         <Stack alignItems="center" spacing={2}>
           <SubTitle style={{ fontSize: '14px', color: '#696C80', marginTop: '20px', textAlign: 'center', marginBottom: '0px' }}>
             Visit
