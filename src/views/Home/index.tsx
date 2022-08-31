@@ -13,7 +13,7 @@ import {
 } from "@cryption/dapp-factory-sdk";
 import useActiveWeb3React from "../../hooks";
 import FarmRow from '../../components/FarmRow';
-import PoweredByCryptionNetwork from '../../images/PoweredByCryptionNetwork.png';
+import PoweredByCryptionNetwork from '../../images/PoweredByDappfactory.png';
 
 const TitleText = styled.p`
   color: #c7cad9;
@@ -49,6 +49,26 @@ const FarmRowContainer = styled(Box)`
   font-family: Inter;
   align-items: center;
   cursor: pointer;
+`;
+const SubTitle = styled.p`
+  color: #c7cad9;
+  font-size: 18px;
+  font-weight: 500;
+  font-family: Inter;
+  line-height: 1.43;
+  text-align: left;
+  margin-top: 25px;
+  margin-bottom: 20px;
+`;
+const LinkTitle = styled.a`
+  color: #4489FF;
+  font-size: 14px;
+  font-weight: 500;
+  margin-left: 5px;
+  margin-right: 5px;
+  font-family: Inter;
+  line-height: 1.43;
+  text-align: left;
 `;
 const StyledToggleButtonGroup = muiStyled(ToggleButtonGroup)(() => ({
   '& .MuiToggleButtonGroup-grouped': {
@@ -125,8 +145,17 @@ function Home(props: any) {
   }, [allFarms, currentDate]);
   return (
     <div>
-      <div style={{ position: 'absolute', bottom: '20px', right: '20px' }}>
-        <img src={PoweredByCryptionNetwork} alt="Dapp factory" width="200px" />
+      <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1 }}>
+        <Stack alignItems="center" spacing={2}>
+          <SubTitle style={{ fontSize: '14px', color: '#696C80', marginTop: '20px', textAlign: 'center', marginBottom: '0px' }}>
+            Visit
+            <LinkTitle href='https://app.dappfactory.xyz/' target="_blank">
+              DappFactory
+            </LinkTitle>
+            to create a farm if you can't find your token
+          </SubTitle>
+          <img src={PoweredByCryptionNetwork} alt="Dapp factory" width="200px" />
+        </Stack>
       </div>
       <div className='heroBkg'>
         <img src="https://quickswap.exchange/static/media/heroBkg.fbe399ae.svg" alt="heroimage" />

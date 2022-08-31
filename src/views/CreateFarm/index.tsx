@@ -26,7 +26,7 @@ import useActiveWeb3React from "../../hooks";
 import TokenList from '../../components/TokenList';
 import getCoinGeckoIds from "../../utils/getCoinGeckoIds";
 import getCoinGeckoPrice from "../../utils/getCoinGeckoPrice";
-import PoweredByCryptionNetwork from '../../images/PoweredByCryptionNetwork.png';
+import PoweredByCryptionNetwork from '../../images/PoweredByDappfactory.png';
 import Modal from '../../components/Modal';
 import './index.css';
 import calendarIcon from '../../images/calendar.png';
@@ -479,6 +479,18 @@ function CreateFarm(props: any) {
   }
   return (
     <div>
+      <div style={{ position: 'fixed', top: '75px', right: '20px', zIndex: 1 }}>
+        <Stack alignItems="center" spacing={2}>
+          <SubTitle style={{ fontSize: '14px', color: '#696C80', marginTop: '20px', textAlign: 'center', marginBottom: '0px' }}>
+            Visit
+            <LinkTitle href='https://app.dappfactory.xyz/' target="_blank">
+              DappFactory
+            </LinkTitle>
+            to create a farm if you can't find your token
+          </SubTitle>
+          <img src={PoweredByCryptionNetwork} alt="Dapp factory" width="200px" />
+        </Stack>
+      </div>
       <div className='heroBkg'>
         <img src="https://quickswap.exchange/static/media/heroBkg.fbe399ae.svg" alt="heroimage" />
       </div>
@@ -551,14 +563,14 @@ function CreateFarm(props: any) {
         />
         <Stack justifyContent="center" alignItems="center">
           <Card>
-            <Stack spacing={2} alignItems="center" justifyContent="space-between" direction="row" sx={{ marginBottom: '20px' }}>
+            <Stack spacing={5} alignItems="center" justifyContent="start" direction="row" sx={{ marginBottom: '20px' }}>
               <IconButton onClick={() => props.history.push('/')}>
                 <ArrowBackIcon sx={{ color: '#636780' }} />
               </IconButton>
               <TitleText style={{ fontSize: '20px' }}>
                 Build a Farm
               </TitleText>
-              <img src={PoweredByCryptionNetwork} alt="Dapp factory" width="200px" />
+              {/* <img src={PoweredByCryptionNetwork} alt="Dapp factory" width="200px" /> */}
             </Stack>
             <TitleText style={{ marginBottom: '30px' }}>
               Create Quickswap Single Reward Farm Powered by DappFactoy
@@ -706,15 +718,6 @@ function CreateFarm(props: any) {
                 />
               </InputWrapper>
             </div>
-            <Stack>
-              <SubTitle style={{ fontSize: '14px', color: '#696C80', marginTop: '20px', textAlign: 'center', marginBottom: '0px' }}>
-                Visit
-                <LinkTitle href='https://app.dappfactory.xyz/' target="_blank">
-                  DappFactory
-                </LinkTitle>
-                to create a farm if you can't find your token
-              </SubTitle>
-            </Stack>
             <Stack sx={{ marginTop: '20px' }} justifyContent="center" alignItems="center">
               <Button
                 fullWidth

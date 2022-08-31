@@ -11,11 +11,7 @@ declare global {
 // Array of available nodes to connect to
 export const nodes = {
   "80001": [process.env.REACT_APP_TESTNET_NETWORK_URL],
-  "5": [process.env.REACT_APP_TESTNET_NETWORK_URL],
   "137": [process.env.REACT_APP_MAINNET_NETWORK_URL],
-  "1": [process.env.REACT_APP_ETH_PROVIDER_LINK],
-  "56": [process.env.REACT_APP_BSC_MAINNET_RPC],
-  "1287": [process.env.REACT_APP_MOONBEAM_TESTNET_NETWORK_URL],
 };
 
 const getNodeUrl = () => {
