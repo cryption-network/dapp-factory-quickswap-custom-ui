@@ -57,7 +57,7 @@ const SubTitle = styled.p`
 `;
 const LinkTitle = styled.a`
   color: #4489FF;
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 500;
   margin-left: 5px;
   margin-right: 5px;
@@ -479,18 +479,6 @@ function CreateFarm(props: any) {
   }
   return (
     <div>
-      <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1 }}>
-        <Stack alignItems="center" spacing={2}>
-          <SubTitle style={{ fontSize: '14px', color: '#696C80', marginTop: '20px', textAlign: 'center', marginBottom: '0px' }}>
-            Visit
-            <LinkTitle href='https://app.dappfactory.xyz/' target="_blank">
-              DappFactory
-            </LinkTitle>
-            to create a farm if you can't find your token
-          </SubTitle>
-          <img src={PoweredByCryptionNetwork} alt="Dapp factory" width="200px" />
-        </Stack>
-      </div>
       <div className='heroBkg'>
         <img src="https://quickswap.exchange/static/media/heroBkg.fbe399ae.svg" alt="heroimage" />
       </div>
@@ -562,6 +550,18 @@ function CreateFarm(props: any) {
           onDismiss={() => toggleRewardTokenModal(false)}
         />
         <Stack justifyContent="center" alignItems="center">
+          <Card style={{ background: 'transparent'}}>
+            <Stack alignItems="center" spacing={2}>
+              <SubTitle style={{ fontSize: '20px', color: '#ffffff', marginTop: '20px', textAlign: 'center', marginBottom: '0px' }}>
+                Visit
+                <LinkTitle href='https://app.dappfactory.xyz/' target="_blank">
+                  DappFactory
+                </LinkTitle>
+                to create a farm if you can't find your token
+              </SubTitle>
+              <img src={PoweredByCryptionNetwork} alt="Dapp factory" width="200px" />
+            </Stack>
+          </Card>
           <Card>
             <Stack spacing={5} alignItems="center" justifyContent="start" direction="row" sx={{ marginBottom: '20px' }}>
               <IconButton onClick={() => props.history.push('/')}>

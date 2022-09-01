@@ -51,7 +51,7 @@ const FarmRowContainer = styled(Box)`
   cursor: pointer;
 `;
 const SubTitle = styled.p`
-  color: #c7cad9;
+  color: #ffffff;
   font-size: 18px;
   font-weight: 500;
   font-family: Inter;
@@ -62,7 +62,7 @@ const SubTitle = styled.p`
 `;
 const LinkTitle = styled.a`
   color: #4489FF;
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 500;
   margin-left: 5px;
   margin-right: 5px;
@@ -145,22 +145,10 @@ function Home(props: any) {
   }, [allFarms, currentDate]);
   return (
     <div>
-      <div style={{ position: 'fixed', top: '75px', right: '20px', zIndex: 1 }}>
-        <Stack alignItems="center" spacing={2}>
-          <SubTitle style={{ fontSize: '14px', color: '#696C80', marginTop: '20px', textAlign: 'center', marginBottom: '0px' }}>
-            Visit
-            <LinkTitle href='https://app.dappfactory.xyz/' target="_blank">
-              DappFactory
-            </LinkTitle>
-            to create a farm if you can't find your token
-          </SubTitle>
-          <img src={PoweredByCryptionNetwork} alt="Dapp factory" width="200px" />
-        </Stack>
-      </div>
       <div className='heroBkg'>
         <img src="https://quickswap.exchange/static/media/heroBkg.fbe399ae.svg" alt="heroimage" />
       </div>
-      <Card>
+      <Card style={{marginBottom: '0px'}}>
         <Stack spacing={3} alignItems="center" justifyContent="center">
           <TitleText>
             Create a Single Reward Farm
@@ -182,6 +170,18 @@ function Home(props: any) {
           </Button>
         </Stack>
       </Card>
+      <FarmRowsContainer style={{ marginBottom: '20px', background: 'transparent', padding: '10px' }}>
+        <Stack alignItems="center" spacing={2}>
+          <SubTitle style={{ fontSize: '20px', marginTop: '20px', textAlign: 'center', marginBottom: '0px' }}>
+            Visit
+            <LinkTitle href='https://app.dappfactory.xyz/' target="_blank">
+              DappFactory
+            </LinkTitle>
+            to create a farm if you can't find your token
+          </SubTitle>
+          <img src={PoweredByCryptionNetwork} alt="Dapp factory" width="200px" />
+        </Stack>
+      </FarmRowsContainer>
       <FarmRowsContainer>
         <Box mb="24px" style={{ display: 'flex' }}>
           <Box width={0.6}>
