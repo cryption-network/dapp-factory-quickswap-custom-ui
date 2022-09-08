@@ -129,9 +129,9 @@ function Home(props: any) {
         (farm: { periodFinish: any; }) => farm.periodFinish && currentDate < Number(farm.periodFinish)
       );
 
-      // const finished = allFarms.filter(
-      //   (farm: { isquickswapSingleReward: any; rewardToken: { endBlock: any; }; }) => !farm.isquickswapSingleReward && farm.rewardToken && farm.rewardToken.endBlock ? latestBlockNumber > Number(farm.rewardToken.endBlock) : false
-      // );
+      const finished = allFarms.filter(
+        (farm: { isquickswapSingleReward: any; rewardToken: { rewardBalInFarm: any; }; }) => parseFloat(farm.rewardToken.rewardBalInFarm) <= 0
+      );
 
       const staked = allFarms.filter((farm: { stakedBalance: BigNumber.Value; }) =>
         new BigNumber(farm.stakedBalance).isGreaterThan(0)
@@ -139,7 +139,7 @@ function Home(props: any) {
 
       setActiveFarms(() => active);
       setUpcomingFarms(() => upcoming);
-      setFinishedFarms(() => []);
+      setFinishedFarms(() => finished);
       setStakedFarms(() => staked);
     }
   }, [allFarms, currentDate]);
@@ -148,7 +148,7 @@ function Home(props: any) {
       <div className='heroBkg'>
         <img src="https://quickswap.exchange/static/media/heroBkg.fbe399ae.svg" alt="heroimage" />
       </div>
-      <Card style={{marginBottom: '0px'}}>
+      <Card style={{ marginBottom: '0px' }}>
         <Stack spacing={3} alignItems="center" justifyContent="center">
           <TitleText>
             Create a Single Reward Farm
