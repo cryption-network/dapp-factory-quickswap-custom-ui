@@ -57,7 +57,6 @@ function App() {
     connector,
     activate,
   } = useWeb3React();
-  console.log({ connector });
   const loginToAccount = () => {
     if (account === undefined || account === null) {
       toggleLoginOptions(true)
@@ -69,7 +68,6 @@ function App() {
     const name = getWalletKeys(connector).map(
       (k) => SUPPORTED_WALLETS[k].name,
     )[0];
-    console.log({ name });
     return (
       <span style={{ fontSize: '14px', fontWeight: '800', fontFamily: 'Inter' }}>Connected with {name}</span>
     );
@@ -102,7 +100,7 @@ function App() {
         if (error instanceof UnsupportedChainIdError) {
           activate(connector); // a little janky...can't use setError because the connector isn't set
         } else {
-          console.log('errir', error);
+          console.error('errir', error);
         }
       });
   };

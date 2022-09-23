@@ -244,7 +244,6 @@ function CreateFarm(props: any) {
         decimals: parseInt(farmData.inputToken.decimals),
         imgUrl: `${farmData.inputToken0.logoURI}${LP_IMAGE_SEPERATOR_STRING}${farmData.inputToken1.logoURI}`
       }
-      console.log({ inputToken })
       const rewardTokenAmountWei = new BigNumber(
         farmData.amount ? farmData.amount : "0"
       )
@@ -343,9 +342,7 @@ function CreateFarm(props: any) {
   };
   const checkPair = async (token0, token1) => {
     try {
-      console.log({ token0, token1 })
       const getPair = await quickswapFactoryContract.methods.getPair(token0, token1).call()
-      console.log({ getPair })
       if (getPair && getPair !== '0x0000000000000000000000000000000000000000') {
         const contractDetails = getERC20Contract(getPair, web3);
         const balance = await contractDetails.methods.balanceOf(account).call();

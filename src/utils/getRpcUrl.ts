@@ -15,7 +15,7 @@ export const nodes = {
 };
 
 const getNodeUrl = () => {
-  let chainId = "80001";
+  let chainId = "137";
   if (localStorage && localStorage.getItem("chainId")) {
     chainId = localStorage.getItem("chainId");
   }

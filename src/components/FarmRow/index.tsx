@@ -115,7 +115,6 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
     [setDepositVal]
   );
   const handleSelectMax = useCallback(() => {
-    console.log({ fullBalance })
     setDepositVal(fullBalance);
   }, [fullBalance, setDepositVal]);
   const handleWithdrawChange = useCallback(
@@ -492,7 +491,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
       }
       <BottomRow>
         <Text fontFamily="Inter">
-          Start Time : {new Date(Number(farm.periodFinish) * 1000).toUTCString()}
+          Reward Duration : {new Date(Number(farm.periodFinish) * 1000).toUTCString()}
         </Text>
       </BottomRow>
     </CustomCard>

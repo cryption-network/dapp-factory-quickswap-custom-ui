@@ -90,12 +90,12 @@ const StyledToggleButtonGroup = muiStyled(ToggleButtonGroup)(() => ({
 function Home(props: any) {
   const currentDate = Math.floor(new Date().getTime() / 1000);
   const { chainId, account } = useActiveWeb3React();
+  console.log({ chainId, account })
   const [allFarms, setAllFarms] = useState<any>([]);
   const [activeFarms, setActiveFarms] = useState([]);
   const [finishedFarms, setFinishedFarms] = useState([]);
   const [stakedFarms, setStakedFarms] = useState([]);
   const [stakedOnly, setIsStake] = useState(false);
-  const [upcomingFarms, setUpcomingFarms] = useState([]);
   const [alignment, setAlignment] = React.useState('active');
   // const getServiceId = (id: any) => {
   //   if (id) {
@@ -111,7 +111,7 @@ function Home(props: any) {
   };
   useEffect(() => {
     const getFarms = async () => {
-      const allFarms = await fetchFarms(chainId || 80001, 1, [], account || undefined)
+      const allFarms = await fetchFarms(chainId || 137, 1, [], account || undefined)
       if (allFarms.success) {
         setAllFarms(allFarms.data)
       }
@@ -119,16 +119,10 @@ function Home(props: any) {
     getFarms()
   }, [account, chainId]);
   useEffect(() => {
-    console.log({ allFarms })
     if (allFarms.length > 0) {
       const active = allFarms.filter(
-        (farm: { periodFinish: any; }) => farm.periodFinish && currentDate > Number(farm.periodFinish)
-      );
-
-      const upcoming = allFarms.filter(
         (farm: { periodFinish: any; }) => farm.periodFinish && currentDate < Number(farm.periodFinish)
       );
-
       const finished = allFarms.filter(
         (farm: { isquickswapSingleReward: any; rewardToken: { rewardBalInFarm: any; }; }) => parseFloat(farm.rewardToken.rewardBalInFarm) <= 0
       );
@@ -138,7 +132,6 @@ function Home(props: any) {
       );
 
       setActiveFarms(() => active);
-      setUpcomingFarms(() => upcoming);
       setFinishedFarms(() => finished);
       setStakedFarms(() => staked);
     }
@@ -202,7 +195,7 @@ function Home(props: any) {
                 aria-label="Platform"
               >
                 <ToggleButton value="active">Active</ToggleButton>
-                <ToggleButton value="upcoming">Upcoming</ToggleButton>
+                {/* <ToggleButton value="upcoming">Upcoming</ToggleButton> */}
                 <ToggleButton value="ended">Ended</ToggleButton>
               </StyledToggleButtonGroup>
               <Flex marginLeft="15x" alignItems="center">
@@ -249,15 +242,6 @@ function Home(props: any) {
           activeFarms &&
           activeFarms.length > 0 &&
           activeFarms.map((eachFarm) => (
-            <FarmRow
-              account={account || undefined}
-              farm={eachFarm}
-            />
-          ))}
-        {!stakedOnly && alignment === 'upcoming' &&
-          upcomingFarms &&
-          upcomingFarms.length > 0 &&
-          upcomingFarms.map((eachFarm) => (
             <FarmRow
               account={account || undefined}
               farm={eachFarm}
