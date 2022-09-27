@@ -34,7 +34,7 @@ import pairIcon from '../../images/toggle.png';
 import rewardIcon from '../../images/reward.png';
 import rewardAmountIcon from '../../images/rewardAmount.png';
 import addIcon from '../../images/addIcon.png';
-import { MIN_REWARDS } from '../../config';
+import { MIN_REWARDS, QUICKSWAP_TOKE_URL } from '../../config';
 
 const TitleText = styled.p`
   color: #c7cad9;
@@ -362,7 +362,7 @@ function CreateFarm(props: any) {
         toggleValidPairAddress(false)
       }
     } catch (error) {
-      console.log({ error })
+      console.error({ error })
       toggleValidPairAddress(false)
     }
   }
@@ -418,7 +418,7 @@ function CreateFarm(props: any) {
   }
   useEffect(() => {
     const getToknList = async () => {
-      const getTokens = await fetch('https://unpkg.com/quickswap-default-token-list@latest/build/quickswap-default.tokenlist.json')
+      const getTokens = await fetch(QUICKSWAP_TOKE_URL)
       const tokenList = await getTokens.json()
       if (tokenList && tokenList.tokens) {
         let getTokensForChain = tokenList.tokens.filter(eachToken => eachToken.chainId === chainId)

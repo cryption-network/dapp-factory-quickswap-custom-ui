@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 import React, { useEffect, useState } from 'react'
 import { withRouter } from "react-router";
 import BigNumber from "bignumber.js";
@@ -14,6 +15,7 @@ import {
 import useActiveWeb3React from "../../hooks";
 import FarmRow from '../../components/FarmRow';
 import PoweredByCryptionNetwork from '../../images/PoweredByDappfactory.png';
+import { QUICKSWAP_TOKE_URL } from '../../config/index';
 
 const TitleText = styled.p`
   color: #c7cad9;
@@ -90,7 +92,6 @@ const StyledToggleButtonGroup = muiStyled(ToggleButtonGroup)(() => ({
 function Home(props: any) {
   const currentDate = Math.floor(new Date().getTime() / 1000);
   const { chainId, account } = useActiveWeb3React();
-  console.log({ chainId, account })
   const [allFarms, setAllFarms] = useState<any>([]);
   const [activeFarms, setActiveFarms] = useState([]);
   const [finishedFarms, setFinishedFarms] = useState([]);
@@ -113,7 +114,63 @@ function Home(props: any) {
     const getFarms = async () => {
       const allFarms = await fetchFarms(chainId || 137, 1, [], account || undefined)
       if (allFarms.success) {
-        setAllFarms(allFarms.data)
+        const getTokens = await fetch(QUICKSWAP_TOKE_URL)
+        const tokenList = await getTokens.json()
+        if (tokenList && tokenList.tokens) {
+          let getTokensForChain = tokenList.tokens.filter((eachToken: { chainId: number | undefined; }) => eachToken.chainId === chainId)
+          if (chainId === 80001) {
+            const testTokens = [
+              {
+                name: 'Cryption Network Token',
+                symbol: 'CNT',
+                address: '0x766f03e47674608cccf7414f6c4ddf3d963ae394',
+                decimals: 18,
+                logoURI: "https://cryption-network-local.infura-ipfs.io/ipfs/QmceihNozdFNThRJiP2X93X2LXmSb5XWzsTaNsVBA7GwTZ"
+              },
+              {
+                name: 'Tether USD',
+                symbol: 'USDT',
+                address: '0xD89a2E56B778AEfe719fc86E122B7db752Bb6B41',
+                decimals: 6,
+                logoURI: "https://cryption-network-local.infura-ipfs.io/ipfs/QmTXHnF2hcQyqo7DGGRDHMizUMCNRo1CNBJYwbXUKpQWj2"
+              },
+              {
+                name: 'WETH',
+                symbol: 'WETH',
+                address: '0x2b5db7D98669be1242F62469214048cFe35d1a17',
+                decimals: 18,
+                logoURI: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png"
+              },
+              {
+                name: 'Wrapped Matic',
+                symbol: 'WMATIC',
+                address: '0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889',
+                decimals: 18,
+                logoURI: "https://cryption-network-local.infura-ipfs.io/ipfs/QmQnnPC9FKVdC2qnvHdDE45cz6q8grpeBLwBWNETVwzi5Q"
+              },
+              {
+                name: 'USDC Stablecoin',
+                symbol: 'USDC',
+                address: '0x06B761Ea0c0EA5674743A184bB826960f6f6cFa0',
+                decimals: 6,
+                logoURI: "https://cryption-network-local.infura-ipfs.io/ipfs/QmV17MDKrb3aCQa2a2SzBZaCeAeAFrpFmqCjn351cWApGS"
+              },
+            ]
+            getTokensForChain = [
+              ...getTokensForChain,
+              ...testTokens
+            ]
+          }
+          const filteredFarms = allFarms.data.filter(eachFarm => {
+            const isToken0Exist = getTokensForChain.find((eachToken: { address: string; }) => eachToken.address.toLowerCase() === eachFarm.token0.toLowerCase());
+            const isToken1Exist = getTokensForChain.find((eachToken: { address: string; }) => eachToken.address.toLowerCase() === eachFarm.token1.toLowerCase());
+            const isRewardTokenExist = getTokensForChain.find((eachToken: { address: string; }) => eachToken.address.toLowerCase() === eachFarm.rewardToken.address.toLowerCase());
+            if (isToken0Exist && isRewardTokenExist && isToken1Exist) {
+              return eachFarm;
+            }
+          })
+          setAllFarms(filteredFarms)
+        }
       }
     }
     getFarms()

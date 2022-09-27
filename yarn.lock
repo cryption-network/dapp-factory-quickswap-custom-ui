@@ -1554,10 +1554,10 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.5.0.tgz#bb504579c1cae923e6576a4f5da43d25f97bdbd9"
   integrity sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==
 
-"@cryption/dapp-factory-sdk@0.4.46":
-  version "0.4.46"
-  resolved "https://registry.yarnpkg.com/@cryption/dapp-factory-sdk/-/dapp-factory-sdk-0.4.46.tgz#b844ba2c3200465cc831dfc9f163fbd594fcf744"
-  integrity sha512-Ft/+Wvgq9ucW0bcjZ0OpZBsVdQO/Bp0PtHKzp8+BSizTfJKEcqFywHa+s14pRS+6RGn9ZBZkXhc8E3EGvG13Rw==
+"@cryption/dapp-factory-sdk@0.4.49":
+  version "0.4.49"
+  resolved "https://registry.yarnpkg.com/@cryption/dapp-factory-sdk/-/dapp-factory-sdk-0.4.49.tgz#59190d54069748c174326f7274ca936fc12118f6"
+  integrity sha512-65vNZUcAeE1o0xpjzwT8SsQW0GKYu7pImCTmf2YOgVxXTpYODo/bs6xJz539bxHXCTn/4f58wi52dC4OXxjKtw==
   dependencies:
     "@apollo/client" "^3.6.8"
     "@emotion/react" "^11.9.0"

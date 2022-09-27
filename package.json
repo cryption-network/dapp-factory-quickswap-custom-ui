@@ -5,7 +5,7 @@
   "dependencies": {
     "@arkane-network/arkane-connect": "^1.28.0-develop.0",
     "@arkane-network/web3-arkane-provider": "^0.23.0",
-    "@cryption/dapp-factory-sdk": "0.4.46",
+    "@cryption/dapp-factory-sdk": "0.4.49",
     "@emotion/react": "^11.10.0",
     "@emotion/styled": "^11.10.0",
     "@ethersproject/providers": "^5.4.5",
