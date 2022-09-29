@@ -31,21 +31,6 @@
 }, {
     "anonymous": false,
     "inputs": [{
-        "indexed": false,
-        "internalType": "address",
-        "name": "_implementation",
-        "type": "address"
-    }, {
-        "indexed": false,
-        "internalType": "bool",
-        "name": "_whitelistStatus",
-        "type": "bool"
-    }],
-    "name": "ImplementationWhitelistStatusUpdated",
-    "type": "event"
-}, {
-    "anonymous": false,
-    "inputs": [{
         "indexed": true,
         "internalType": "address",
         "name": "previousOwner",
@@ -68,20 +53,16 @@
     }, {
         "indexed": false,
         "internalType": "address",
-        "name": "_stakingPoolsContract",
+        "name": "_stakingRewardsContract",
         "type": "address"
     }],
-    "name": "StakingDualRewardsLaunched",
+    "name": "StakingRewardsLaunched",
     "type": "event"
 }, {
     "inputs": [{
         "internalType": "address",
         "name": "_newImplementation",
         "type": "address"
-    }, {
-        "internalType": "bool",
-        "name": "_whitelistStatus",
-        "type": "bool"
     }],
     "name": "addImplementation",
     "outputs": [],
@@ -98,7 +79,15 @@
     "stateMutability": "view",
     "type": "function"
 }, {
-    "inputs": [],
+    "inputs": [{
+        "internalType": "uint256",
+        "name": "_implementationId",
+        "type": "uint256"
+    }, {
+        "internalType": "bytes",
+        "name": "_feeManagerEncodedData",
+        "type": "bytes"
+    }],
     "name": "getFeeInfo",
     "outputs": [{
         "internalType": "uint256",
@@ -127,31 +116,13 @@
     "type": "function"
 }, {
     "inputs": [{
-        "internalType": "address",
-        "name": "",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "_version",
+        "type": "uint256"
     }],
-    "name": "implementationVsUserWhitelisting",
-    "outputs": [{
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-    }],
-    "stateMutability": "view",
-    "type": "function"
-}, {
-    "inputs": [{
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-    }],
-    "name": "implementationWhitelisting",
-    "outputs": [{
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-    }],
-    "stateMutability": "view",
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
 }, {
     "inputs": [],
@@ -180,10 +151,14 @@
         "type": "uint256"
     }, {
         "internalType": "bytes",
-        "name": "_encodedData",
+        "name": "_implementationData",
+        "type": "bytes"
+    }, {
+        "internalType": "bytes",
+        "name": "_feeManagerEncodedData",
         "type": "bytes"
     }],
-    "name": "launchStakingDualRewards",
+    "name": "launchStakingPool",
     "outputs": [{
         "internalType": "address",
         "name": "",
@@ -202,10 +177,18 @@
         "type": "address"
     }, {
         "internalType": "bytes",
-        "name": "_encodedData",
+        "name": "_implementationData",
+        "type": "bytes"
+    }, {
+        "internalType": "bytes",
+        "name": "_feeManagerEncodedData",
+        "type": "bytes"
+    }, {
+        "internalType": "bytes",
+        "name": "_referralEncodedData",
         "type": "bytes"
     }],
-    "name": "launchStakingDualRewardsWithReferral",
+    "name": "launchStakingPoolWithReferral",
     "outputs": [{
         "internalType": "address",
         "name": "",
@@ -255,7 +238,7 @@
         "name": "",
         "type": "uint256"
     }],
-    "name": "stakingDualRewardsList",
+    "name": "stakingPools",
     "outputs": [{
         "internalType": "address",
         "name": "",
@@ -303,20 +286,6 @@
     "type": "function"
 }, {
     "inputs": [{
-        "internalType": "uint256",
-        "name": "_id",
-        "type": "uint256"
-    }, {
-        "internalType": "bool",
-        "name": "_whitelistStatus",
-        "type": "bool"
-    }],
-    "name": "updateImplementationWhitelistStatus",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-}, {
-    "inputs": [{
         "internalType": "bool",
         "name": "_isReferralManagerEnabled",
         "type": "bool"
@@ -330,16 +299,22 @@
     "stateMutability": "nonpayable",
     "type": "function"
 }, {
+    "inputs": [],
+    "name": "version",
+    "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+    }],
+    "stateMutability": "view",
+    "type": "function"
+}, {
     "inputs": [{
-        "internalType": "address",
-        "name": "_implementation",
-        "type": "address"
-    }, {
-        "internalType": "address",
-        "name": "_user",
+        "internalType": "contract IERC20",
+        "name": "_token",
         "type": "address"
     }],
-    "name": "whitelistUser",
+    "name": "withdrawERC20",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

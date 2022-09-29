@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 // @ts-nocheck
 import React, { forwardRef, useState, useEffect } from 'react'
 import { withRouter } from 'react-router';
@@ -7,12 +8,12 @@ import { ethers, Contract } from "ethers";
 import { styled as muiStyled } from '@mui/material/styles';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import styled from 'styled-components';
-import { useCreateFarm, LP_IMAGE_SEPERATOR_STRING } from "@cryption/dapp-factory-sdk";
+import { useCreateFarm, LP_IMAGE_SEPERATOR_STRING, getFeeManagerDetails, getFeeManagerAccountDetails } from "@cryption/dapp-factory-sdk";
 import DatePicker from "react-datepicker";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import "react-datepicker/dist/react-datepicker.css";
 import {
-  // useQuikcswapSingleRewardContract,
+  useFarmFactoryContract,
   useFactoryContract
 } from "../../hooks/useContract";
 import tokenAbi from "../../config/constants/abi/token.json";
@@ -20,7 +21,7 @@ import { getERC20Contract } from '../../utils/contractHelpers';
 import useWeb3 from "../../hooks/useWeb3";
 import {
   getQuickswapSingleRewardFactory,
-  getRouterAddress
+  getRouterAddress,
 } from "../../utils/addressHelpers";
 import useActiveWeb3React from "../../hooks";
 import TokenList from '../../components/TokenList';
@@ -34,7 +35,7 @@ import pairIcon from '../../images/toggle.png';
 import rewardIcon from '../../images/reward.png';
 import rewardAmountIcon from '../../images/rewardAmount.png';
 import addIcon from '../../images/addIcon.png';
-import { MIN_REWARDS, QUICKSWAP_TOKE_URL } from '../../config';
+import { MIN_REWARDS, QUICKSWAP_TOKE_URL, MIN_REWARDS_PER_MONTH } from '../../config';
 
 const TitleText = styled.p`
   color: #c7cad9;
@@ -72,6 +73,23 @@ const Card = styled.div`
   border-radius: 10px;
   padding: 20px 20px;
   background-color: #1C1E29;
+`;
+const FeesContainer = styled.div`
+  background: #4B3625;
+  padding: 10px;
+  border-radius: 10px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+`;
+const FeeTitle = styled.p`
+  color: #FDD835;
+  line-height: 25px;
+  font-family: Inter;
+  font-size: 16px;
+`;
+const FeeSubtitle = styled.span`
+  color:#C7CAD9;
+  font-size: 16px;
 `;
 
 const CssTextField = muiStyled(TextField)({
@@ -182,15 +200,27 @@ function CreateFarm(props: any) {
   const [isValidPair, toggleValidPairAddress] = useState(null);
   const [tokens, setTokens] = useState([]);
   const [pendingTxn, togglePendingTx] = useState(false);
+  const [pendingApproveTxn, togglePendingApproveTx] = useState(false);
   const [showInputtoken0Modal, toggleInputtoken0Modal] = useState(false);
   const [successModal, toggleSuccessModal] = useState(false);
   const [showInputtoken1Modal, toggleInputtoken1Modal] = useState(false);
   const [showRewardTokenModal, toggleRewardTokenModal] = useState(false);
   const [allowanceAmount, setAllowanceAmount] = useState(0);
+  const [feeManagerDetails, setFeemanagerDetails] = useState({
+    address: "",
+    decimals: 0,
+    feeAmount: "",
+    isFeeManagerEnabled: false,
+    name: "",
+    symbol: "",
+    feeTokenUserBalance: "0",
+    feeTokenAllowance: "0"
+  });
   const [farmData, setFarmData] = useState({
     amount: "",
     rewardDuration: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
     minRewardAmount: 0,
+    rewardsPerMonth: 0,
     feeAddress: "",
     referrer: "",
     inputToken0: {
@@ -227,8 +257,8 @@ function CreateFarm(props: any) {
   const { launchFarmOrPool, txnHash } = useCreateFarm(1);
   const { chainId, account } = useActiveWeb3React();
   const factoryContractAddress = getQuickswapSingleRewardFactory(chainId || 80001);
-  // const factoryContract = useQuikcswapSingleRewardContract();
   const quickswapFactoryContract = useFactoryContract()
+  const farmFactoryContract = useFarmFactoryContract();
   const launchFarm = async () => {
     try {
       togglePendingTx(true)
@@ -266,6 +296,35 @@ function CreateFarm(props: any) {
     } catch (error) {
       togglePendingTx(false)
       console.error(error);
+    }
+  }
+  const approveFeeManager = async () => {
+    try {
+      togglePendingApproveTx(true)
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const feeTokenContract = new Contract(feeManagerDetails.address, tokenAbi.abi, signer);
+      const approvalTxn = await feeTokenContract.approve(
+        factoryContractAddress,
+        feeManagerDetails.feeAmount,
+      );
+      await approvalTxn.wait();
+      const feeManagerAccountDetails = await getFeeManagerAccountDetails(
+        feeManagerDetails.isFeeManagerEnabled,
+        account,
+        web3,
+        chainId,
+        factoryContractAddress,
+        feeManagerDetails.address
+      );
+      setFeemanagerDetails(data => ({
+        ...data,
+        ...feeManagerAccountDetails
+      }))
+      togglePendingApproveTx(false)
+    } catch (error) {
+      console.log('error', error);
+      togglePendingApproveTx(false)
     }
   }
   const onCreateFarm = async () => {
@@ -366,6 +425,25 @@ function CreateFarm(props: any) {
       toggleValidPairAddress(false)
     }
   }
+  const checkMinimumRewards = async () => {
+    if (farmData.amount && farmData.rewardToken && farmData.rewardToken.address.length > 0 && farmData.rewardDuration) {
+      var difference = (farmData.rewardDuration - new Date()) / 1000;
+      const coingeckoIds = await getCoinGeckoIds();
+      const token0USD = await getCoinGeckoPrice(
+        farmData.rewardToken.symbol.toLowerCase(),
+        farmData.rewardToken.name,
+        coingeckoIds
+      );
+      const rewardsPerSec = (farmData.amount * parseFloat(token0USD)) / difference
+      const rewardsPerMonth = rewardsPerSec * 86400 * 30
+      const minimumRewards = farmData.amount * parseFloat(token0USD);
+      setFarmData(currentfarmData => ({
+        ...currentfarmData,
+        rewardsPerMonth: rewardsPerMonth,
+        minRewardAmount: minimumRewards
+      }));
+    }
+  }
   const selectToken = async (token, title) => {
     const defaultValues = {
       address: "",
@@ -409,11 +487,12 @@ function CreateFarm(props: any) {
         token.name,
         coingeckoIds
       );
-      const minimumRewards = MIN_REWARDS / token0USD;
+      const minimumRewards = farmData.amount * parseFloat(token0USD);
       setFarmData(currentfarmData => ({
         ...currentfarmData,
         minRewardAmount: minimumRewards
       }));
+      checkMinimumRewards()
     }
   }
   useEffect(() => {
@@ -468,11 +547,47 @@ function CreateFarm(props: any) {
         setTokens(getTokensForChain)
       }
     }
+    const checkfee = async () => {
+      const feeManagerDetailsResp = await getFeeManagerDetails(
+        farmFactoryContract,
+        factoryContractAddress,
+        chainId,
+        web3,
+        1,
+        true
+      );
+      const feeManagerAccountDetails = await getFeeManagerAccountDetails(
+        feeManagerDetailsResp.isFeeManagerEnabled,
+        account,
+        web3,
+        chainId,
+        factoryContractAddress,
+        feeManagerDetailsResp.address
+      );
+      if (feeManagerDetailsResp.isFeeManagerEnabled) {
+        setFeemanagerDetails({
+          ...feeManagerDetailsResp,
+          ...feeManagerAccountDetails
+        })
+      }
+    }
+    if (account) {
+      checkfee()
+    }
     getToknList()
-  }, [chainId])
+  }, [chainId, account])
+  useEffect(() => {
+    checkMinimumRewards()
+  }, [farmData.amount, farmData.rewardDuration, farmData.rewardToken])
   let disabledButton = true;
-  if (farmData.inputToken.address.length > 0 && farmData.rewardToken.address.length > 0 && parseFloat(farmData.amount) > 0 && parseFloat(farmData.amount) >= parseFloat(farmData.minRewardAmount)) {
-    disabledButton = false
+  if (farmData.inputToken.address.length > 0 && farmData.rewardToken.address.length > 0 && parseFloat(farmData.amount) > 0 && parseFloat(farmData.minRewardAmount) >= MIN_REWARDS && parseFloat(farmData.rewardsPerMonth) >= MIN_REWARDS_PER_MONTH) {
+    if (feeManagerDetails.isFeeManagerEnabled && new BigNumber(feeManagerDetails.feeTokenAllowance).isGreaterThanOrEqualTo(new BigNumber(feeManagerDetails.feeAmount))) {
+      disabledButton = false
+    } else if (feeManagerDetails.isFeeManagerEnabled && new BigNumber(feeManagerDetails.feeTokenAllowance).isLessThan(new BigNumber(feeManagerDetails.feeAmount))) {
+      disabledButton = true
+    } else {
+      disabledButton = false
+    }
   }
   return (
     <div>
@@ -547,7 +662,7 @@ function CreateFarm(props: any) {
           onDismiss={() => toggleRewardTokenModal(false)}
         />
         <Stack justifyContent="center" alignItems="center">
-          <Card style={{ background: 'transparent'}}>
+          <Card style={{ background: 'transparent' }}>
             <Stack alignItems="center" spacing={2}>
               <SubTitle style={{ fontSize: '20px', color: '#ffffff', marginTop: '20px', textAlign: 'center', marginBottom: '0px' }}>
                 Visit
@@ -715,7 +830,50 @@ function CreateFarm(props: any) {
                 />
               </InputWrapper>
             </div>
-            <Stack sx={{ marginTop: '20px' }} justifyContent="center" alignItems="center">
+            {feeManagerDetails.isFeeManagerEnabled &&
+              <FeesContainer>
+                <FeeTitle>
+                  Please Note: <FeeSubtitle>
+                    Creating a farm requires a one time Fee of ${
+                      new BigNumber(
+                        convertWeiToEther(
+                          feeManagerDetails.feeAmount,
+                          feeManagerDetails.decimals
+                        )
+                      ).toFixed(3)
+                    }{" "} in {feeManagerDetails.symbol} This is to prevent spam.
+                  </FeeSubtitle>
+                </FeeTitle>
+              </FeesContainer>
+            }
+            {feeManagerDetails.isFeeManagerEnabled &&
+              <SubTitle style={{ fontSize: '14px', color: '#696C80', marginTop: '10px', textAlign: 'center' }}>Your {feeManagerDetails.symbol} balance: {new BigNumber(
+                convertWeiToEther(
+                  feeManagerDetails.feeTokenUserBalance,
+                  feeManagerDetails.decimals
+                )
+              ).toFixed(3)} {feeManagerDetails.symbol}
+              </SubTitle>}
+            <Stack sx={{ marginTop: '20px' }} justifyContent="center" alignItems="center" direction="row" spacing={3}>
+              {feeManagerDetails.isFeeManagerEnabled &&
+                <Button
+                  fullWidth
+                  disabled={pendingApproveTxn || new BigNumber(feeManagerDetails.feeTokenAllowance).isGreaterThanOrEqualTo(new BigNumber(feeManagerDetails.feeAmount))}
+                  onClick={approveFeeManager}
+                  sx={{
+                    background: (pendingApproveTxn || new BigNumber(feeManagerDetails.feeTokenAllowance).isGreaterThanOrEqualTo(new BigNumber(feeManagerDetails.feeAmount))) ? '#3E4252' : '#448aff',
+                    color: '#ffffff',
+                    width: '200px',
+                    height: '48px',
+                    padding: '6px 8px',
+                    borderRadius: '10px',
+                    fontFamily: 'Inter',
+                    fontWeight: '700',
+                  }}
+                >
+                  {pendingApproveTxn ? 'Processing...' : `Approve ${feeManagerDetails.symbol}`}
+                </Button>
+              }
               <Button
                 fullWidth
                 disabled={pendingTxn || disabledButton}
@@ -734,6 +892,7 @@ function CreateFarm(props: any) {
                 {pendingTxn ? 'Processing...' : 'Create Farm'}
               </Button>
             </Stack>
+            <SubTitle style={{ fontSize: '12px', color: '#696C80', marginTop: '10px', textAlign: 'center' }}>*Min. Rewards Per Month ${MIN_REWARDS_PER_MONTH} {farmData.rewardsPerMonth > 0 && `( ${farmData.rewardsPerMonth} ${farmData.rewardToken.symbol} )`}</SubTitle>
           </Card>
         </Stack >
       </Container >

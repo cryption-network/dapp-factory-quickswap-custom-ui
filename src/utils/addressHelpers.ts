@@ -14,3 +14,6 @@ export const getRouterAddress = (chainId: number) => {
 export const getFactoryAddress = (chainId: number) => {
   return getAddress(addresses.quickswapfactoryAddress, chainId);
 };
+export const getFarmFactoryAddress = (chainId: number) => {
+  return getAddress(addresses.farmFactory, chainId);
+};

@@ -3,6 +3,7 @@ import { AbiItem } from "web3-utils";
 import {
   getQuickswapSingleRewardFactory,
   getFactoryAddress,
+  getFarmFactoryAddress,
 } from "./addressHelpers";
 import { Contract } from "web3-eth-contract";
 import erc20Abi from "../config/constants/abi/erc20.json";
@@ -38,4 +39,12 @@ export const getFactoryContract = (web3: Web3, chainId: number) => {
 
 export const getQuickswapSingleFarmContract = (address: string, web3: Web3) => {
   return getContract(quickswapsinglerewardFarmAbi, address, web3);
+};
+
+export const getFarmAsAServiceContract = (web3: Web3, chainId: number) => {
+  return getContract(
+    quickswapsinglerewardAbi,
+    getFarmFactoryAddress(chainId),
+    web3
+  );
 };
