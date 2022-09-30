@@ -619,7 +619,7 @@ function CreateFarm(props: any) {
             </Button>
             <Button
               fullWidth
-              onClick={() => toggleSuccessModal(false)}
+              onClick={() => window.open('/', "_self")}
               sx={{
                 background: '#EBECF2',
                 color: '#1C1E29',
@@ -631,7 +631,7 @@ function CreateFarm(props: any) {
                 fontWeight: '700',
               }}
             >
-              Close
+              Go Home
             </Button>
           </Stack>
         </Stack>
