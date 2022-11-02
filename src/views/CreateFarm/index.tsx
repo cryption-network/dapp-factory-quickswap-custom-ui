@@ -386,10 +386,17 @@ function CreateFarm(props: any) {
     event: React.ChangeEvent<HTMLInputElement>,
     title: string
   ) => {
-    setFarmData({
-      ...farmData,
-      [title]: event.target.value,
-    });
+    if (title === "amount" && parseFloat(event.target.value) >= 0) {
+      setFarmData({
+        ...farmData,
+        [title]: event.target.value,
+      });
+    } else {
+      setFarmData({
+        ...farmData,
+        [title]: "0",
+      });
+    }
   }
   const convertWeiToEther = (
     etherValue: string,
@@ -426,7 +433,7 @@ function CreateFarm(props: any) {
     }
   }
   const checkMinimumRewards = async () => {
-    if (farmData.amount && farmData.rewardToken && farmData.rewardToken.address.length > 0 && farmData.rewardDuration) {
+    if (farmData.amount && parseFloat(farmData.amount) > 0 && farmData.rewardToken && farmData.rewardToken.address.length > 0 && farmData.rewardDuration) {
       var difference = (farmData.rewardDuration - new Date()) / 1000;
       const coingeckoIds = await getCoinGeckoIds();
       const token0USD = await getCoinGeckoPrice(
@@ -434,9 +441,11 @@ function CreateFarm(props: any) {
         farmData.rewardToken.name,
         coingeckoIds
       );
-      const rewardsPerSec = (farmData.amount * parseFloat(token0USD)) / difference
-      const rewardsPerMonth = rewardsPerSec * 86400 * 30
-      const minimumRewards = farmData.amount * parseFloat(token0USD);
+
+      const rewardsPerSec = MIN_REWARDS_PER_MONTH / difference
+      let rewardsPerMonth = rewardsPerSec * 86400 * 30
+      rewardsPerMonth = rewardsPerMonth / parseFloat(token0USD);
+      const minimumRewards = MIN_REWARDS / parseFloat(token0USD);
       setFarmData(currentfarmData => ({
         ...currentfarmData,
         rewardsPerMonth: rewardsPerMonth,
@@ -578,9 +587,9 @@ function CreateFarm(props: any) {
   }, [chainId, account])
   useEffect(() => {
     checkMinimumRewards()
-  }, [farmData.amount, farmData.rewardDuration, farmData.rewardToken])
+  }, [farmData.rewardDuration, farmData.rewardToken])
   let disabledButton = true;
-  if (farmData.inputToken.address.length > 0 && farmData.rewardToken.address.length > 0 && parseFloat(farmData.amount) > 0 && parseFloat(farmData.minRewardAmount) >= MIN_REWARDS && parseFloat(farmData.rewardsPerMonth) >= MIN_REWARDS_PER_MONTH) {
+  if (farmData.inputToken.address.length > 0 && farmData.rewardToken.address.length > 0 && parseFloat(farmData.amount) > 0 && parseFloat(farmData.minRewardAmount) <= parseFloat(farmData.amount) && parseFloat(farmData.rewardsPerMonth) <= parseFloat(farmData.amount)) {
     if (feeManagerDetails.isFeeManagerEnabled && new BigNumber(feeManagerDetails.feeTokenAllowance).isGreaterThanOrEqualTo(new BigNumber(feeManagerDetails.feeAmount))) {
       disabledButton = false
     } else if (feeManagerDetails.isFeeManagerEnabled && new BigNumber(feeManagerDetails.feeTokenAllowance).isLessThan(new BigNumber(feeManagerDetails.feeAmount))) {
@@ -594,7 +603,7 @@ function CreateFarm(props: any) {
       <div className='heroBkg'>
         <img src="https://quickswap.exchange/static/media/heroBkg.fbe399ae.svg" alt="heroimage" />
       </div>
-      <Modal open={successModal} title="Transcation Successfull" onClose={() => toggleSuccessModal(false)}>
+      <Modal open={successModal} title="Transaction Successfull" onClose={() => toggleSuccessModal(false)}>
         <Stack alignItems="center" justifyContent="center">
           <CheckCircleRoundedIcon sx={{ color: '#11A569', fontSize: '50px' }} />
           <TitleText style={{ fontSize: '18px', marginTop: '10px', marginBottom: '20px' }}>
@@ -800,11 +809,12 @@ function CreateFarm(props: any) {
               <CssTextField
                 fullWidth
                 onChange={(event) => handleChange(event, "amount")}
+                onBlur={() => checkMinimumRewards()}
                 value={farmData.amount}
                 type="number" id="outlined-basic"
                 placeholder="Reward Amount"
                 variant="outlined" />
-              <SubTitle style={{ fontSize: '12px', color: '#696C80', marginTop: '10px' }}>*Min. Reward amount ${MIN_REWARDS} {farmData.minRewardAmount > 0 && `( ${farmData.minRewardAmount} ${farmData.rewardToken.symbol} )`}</SubTitle>
+              {farmData.minRewardAmount && farmData.minRewardAmount > parseFloat(farmData.amount) ? <SubTitle style={{ fontSize: '12px', color: '#696C80', marginTop: '10px' }}>*Min. Reward amount  Should be {farmData.minRewardAmount} {farmData.rewardToken.symbol}  ( $ {MIN_REWARDS} )</SubTitle> : <></>}
             </div>
             <div>
               <Stack direction="row" alignItems="center">
@@ -892,7 +902,7 @@ function CreateFarm(props: any) {
                 {pendingTxn ? 'Processing...' : 'Create Farm'}
               </Button>
             </Stack>
-            <SubTitle style={{ fontSize: '12px', color: '#696C80', marginTop: '10px', textAlign: 'center' }}>*Min. Rewards Per Month ${MIN_REWARDS_PER_MONTH} {farmData.rewardsPerMonth > 0 && `( ${farmData.rewardsPerMonth} ${farmData.rewardToken.symbol} )`}</SubTitle>
+            {parseFloat(farmData.rewardsPerMonth) > parseFloat(farmData.amount) && <SubTitle style={{ fontSize: '12px', color: '#696C80', marginTop: '10px', textAlign: 'center' }}>*Min. Rewards Per Month Should be  {farmData.rewardsPerMonth} {farmData.rewardToken.symbol}  ( ${MIN_REWARDS_PER_MONTH} )</SubTitle>}
           </Card>
         </Stack >
       </Container >

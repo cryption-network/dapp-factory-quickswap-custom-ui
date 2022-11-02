@@ -129,15 +129,14 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
   const handleApprove = async () => {
     try {
       setApprovalLoading(true);
-      const amount = 1000000;
-      const approvalAmount = ethers.utils.parseUnits(amount.toString(), 18);
+      const approvalAmount = ethers.utils.parseUnits(depositVal.toString(), 18);
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const tokenContract = new Contract(farm.inputToken, tokenAbi.abi, signer);
       const approvalTx = await tokenContract.approve(farm.id, approvalAmount);
       await approvalTx.wait();
       const allowanceAmount = await tokenContract.allowance(account, farm.id);
-      setUserAllowance(new BigNumber(allowanceAmount));
+      setUserAllowance(new BigNumber(allowanceAmount.toString()));
       setApprovalLoading(false);
     } catch (error) {
       console.error(error);
@@ -408,7 +407,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
               </Text>
             </Flex>
             <TokenInput value={depositVal} onChange={handleDepositChange} onSelectMax={handleSelectMax} />
-            {userAllowance && new BigNumber(userAllowance).isGreaterThan(0) ? (
+            {userAllowance && new BigNumber(userAllowance).dividedBy(10**18).isGreaterThanOrEqualTo(depositVal) ? (
               <Flex justifyContent="center" marginTop="20px">
                 <Button
                   scale="md"
@@ -424,6 +423,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
                 <Button
                   isLoading={approvalLoading}
                   onClick={handleApprove}
+                  disabled={depositVal === ""}
                   style={{ backgroundImage: "linear-gradient(105deg,#448aff 3%,#448aff)", width: '100%', borderRadius: '10px' }}
                   scale="md"
                 >
