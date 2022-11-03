@@ -237,7 +237,7 @@ export const SUPPORTED_WALLETS: { [key: string]: WalletInfo } = {
     mobile: true,
   },
 };
-export const MIN_REWARDS = 2000;
-export const MIN_REWARDS_PER_MONTH = 1000;
+export const MIN_REWARDS = 2;
+export const MIN_REWARDS_PER_MONTH = 1;
 export const QUICKSWAP_TOKE_URL =
   "https://unpkg.com/quickswap-default-token-list@latest/build/quickswap-default.tokenlist.json";
