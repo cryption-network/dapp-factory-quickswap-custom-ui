@@ -469,7 +469,8 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
       setLiquidity(liquidityUsd);
     };
     getLiquidity();
-  }, [client, coingeckoids, farm.lpTotalInQuoteToken, farm.multiplier, farm.quoteTokenAmount, farm.rewardToken.name, farm.rewardToken.rewardsPerToken, farm.rewardToken.symbol, farm.token0Data.name, farm.token0Data.symbol, farm.token1Data.name, farm.token1Data.symbol, farm.tokenAmount, web3.utils]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [farm.lpTotalInQuoteToken, farm.multiplier, farm.quoteTokenAmount, farm.rewardToken.name, farm.rewardToken.rewardsPerToken, farm.rewardToken.symbol, farm.token0Data.name, farm.token0Data.symbol, farm.token1Data.name, farm.token1Data.symbol, farm.tokenAmount, web3.utils]);
   useEffect(() => {
     if (
       farm.allowance &&
