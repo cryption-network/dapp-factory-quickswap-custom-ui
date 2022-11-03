@@ -14,6 +14,7 @@ import {
 } from "@cryption/dapp-factory-sdk";
 import useActiveWeb3React from "../../hooks";
 import FarmRow from '../../components/FarmRow';
+import getCoinGeckoIds from "../../utils/getCoinGeckoIds";
 import PoweredByCryptionNetwork from '../../images/PoweredByDappfactory.png';
 import { QUICKSWAP_TOKE_URL } from '../../config/index';
 
@@ -93,6 +94,7 @@ function Home(props: any) {
   const currentDate = Math.floor(new Date().getTime() / 1000);
   const { chainId, account } = useActiveWeb3React();
   const [allFarms, setAllFarms] = useState<any>([]);
+  const [coingeckoids, setCoingeckoids] = useState<any>([]);
   const [activeFarms, setActiveFarms] = useState([]);
   const [finishedFarms, setFinishedFarms] = useState([]);
   const [stakedFarms, setStakedFarms] = useState([]);
@@ -193,6 +195,14 @@ function Home(props: any) {
       setStakedFarms(() => staked);
     }
   }, [allFarms, currentDate]);
+  useEffect(()=>{
+    const coingecko = async () => {
+      const coinGeckoIds = await getCoinGeckoIds();
+      setCoingeckoids(coinGeckoIds);
+    }
+    coingecko();
+    
+  },[])
   return (
     <div>
       <div className='heroBkg'>
@@ -293,6 +303,8 @@ function Home(props: any) {
             <FarmRow
               account={account || undefined}
               farm={eachFarm}
+              coingeckoids={coingeckoids}
+              chainId={chainId||80001}
             />
           ))}
         {!stakedOnly && alignment === 'active' &&
@@ -302,6 +314,8 @@ function Home(props: any) {
             <FarmRow
               account={account || undefined}
               farm={eachFarm}
+              coingeckoids={coingeckoids}
+              chainId={chainId || 80001}
             />
           ))}
         {!stakedOnly && alignment === 'ended' &&
@@ -311,6 +325,8 @@ function Home(props: any) {
             <FarmRow
               account={account || undefined}
               farm={eachFarm}
+              coingeckoids={coingeckoids}
+              chainId={chainId || 80001}
             />
           ))}
       </FarmRowsContainer>

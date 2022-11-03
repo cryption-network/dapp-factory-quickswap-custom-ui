@@ -36,6 +36,8 @@ import rewardIcon from '../../images/reward.png';
 import rewardAmountIcon from '../../images/rewardAmount.png';
 import addIcon from '../../images/addIcon.png';
 import { MIN_REWARDS, QUICKSWAP_TOKE_URL, MIN_REWARDS_PER_MONTH } from '../../config';
+import { getApollo } from "../../apollo";
+import { getTokenPrice } from '../../apollo/queries'
 
 const TitleText = styled.p`
   color: #c7cad9;
@@ -67,8 +69,9 @@ const LinkTitle = styled.a`
   text-align: left;
 `;
 const Card = styled.div`
-  width: fit-content;
+  width: 100%;
   margin-top: 30px;
+  max-width: 500px;
   font-family: Inter;
   border-radius: 10px;
   padding: 20px 20px;
@@ -218,7 +221,7 @@ function CreateFarm(props: any) {
   });
   const [farmData, setFarmData] = useState({
     amount: "",
-    rewardDuration: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
+    rewardDuration: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
     minRewardAmount: 0,
     rewardsPerMonth: 0,
     feeAddress: "",
@@ -256,6 +259,7 @@ function CreateFarm(props: any) {
 
   const { launchFarmOrPool, txnHash } = useCreateFarm(1);
   const { chainId, account } = useActiveWeb3React();
+  const client = getApollo(chainId);
   const factoryContractAddress = getQuickswapSingleRewardFactory(chainId || 80001);
   const quickswapFactoryContract = useFactoryContract()
   const farmFactoryContract = useFarmFactoryContract();
@@ -435,13 +439,31 @@ function CreateFarm(props: any) {
   const checkMinimumRewards = async () => {
     if (farmData.amount && parseFloat(farmData.amount) > 0 && farmData.rewardToken && farmData.rewardToken.address.length > 0 && farmData.rewardDuration) {
       var difference = (farmData.rewardDuration - new Date()) / 1000;
-      const coingeckoIds = await getCoinGeckoIds();
-      const token0USD = await getCoinGeckoPrice(
-        farmData.rewardToken.symbol.toLowerCase(),
-        farmData.rewardToken.name,
-        coingeckoIds
-      );
-
+      const { data } = await client.query({
+        query: getTokenPrice,
+        variables: {
+          first: 1000,
+          skip: 0,
+          symbol: farmData.rewardToken.symbol.toUpperCase(),
+          name: farmData.rewardToken.name
+          // where: { symbol: "CNT" },
+        },
+        context: {
+          clientName: "tokenprice",
+        },
+      });
+      let token0USD = "0"
+      if (data && data.tokens && data.tokens.length > 0) {
+        token0USD = new BigNumber(data.tokens[0].tradeVolumeUSD).dividedBy(data.tokens[0].tradeVolume).toFixed(4).toString();
+      } else {
+        const coingeckoIds = await getCoinGeckoIds();
+        token0USD = await getCoinGeckoPrice(
+          farmData.rewardToken.symbol.toLowerCase(),
+          farmData.rewardToken.name,
+          coingeckoIds
+        );
+      }
+      console.log({ token0USD })
       const rewardsPerSec = MIN_REWARDS_PER_MONTH / difference
       let rewardsPerMonth = rewardsPerSec * 86400 * 30
       rewardsPerMonth = rewardsPerMonth / parseFloat(token0USD);
@@ -490,12 +512,29 @@ function CreateFarm(props: any) {
         .allowance(account, factoryContractAddress)
         .call();
       setAllowanceAmount(allowance);
-      const coingeckoIds = await getCoinGeckoIds();
-      const token0USD = await getCoinGeckoPrice(
-        token.symbol.toLowerCase(),
-        token.name,
-        coingeckoIds
-      );
+      const { data } = await client.query({
+        query: getTokenPrice,
+        variables: {
+          first: 1000,
+          skip: 0,
+          symbol: token.symbol.toUpperCase(),
+          name: token.name
+        },
+        context: {
+          clientName: "tokenprice",
+        },
+      });
+      let token0USD = "0"
+      if (data && data.tokens && data.tokens.length > 0) {
+        token0USD = new BigNumber(data.tokens[0].tradeVolumeUSD).dividedBy(data.tokens[0].tradeVolume).toFixed(4).toString();
+      } else {
+        const coingeckoIds = await getCoinGeckoIds();
+        token0USD = await getCoinGeckoPrice(
+          token.symbol.toLowerCase(),
+          token.name,
+          coingeckoIds
+        );
+      }
       const minimumRewards = farmData.amount * parseFloat(token0USD);
       setFarmData(currentfarmData => ({
         ...currentfarmData,
@@ -581,6 +620,7 @@ function CreateFarm(props: any) {
       }
     }
     if (account) {
+
       checkfee()
     }
     getToknList()
@@ -606,8 +646,11 @@ function CreateFarm(props: any) {
       <Modal open={successModal} title="Transaction Successfull" onClose={() => toggleSuccessModal(false)}>
         <Stack alignItems="center" justifyContent="center">
           <CheckCircleRoundedIcon sx={{ color: '#11A569', fontSize: '50px' }} />
-          <TitleText style={{ fontSize: '18px', marginTop: '10px', marginBottom: '20px' }}>
+          <TitleText style={{ fontSize: '18px', marginTop: '10px',}}>
             Farm Created Successfully !
+          </TitleText>
+          <TitleText style={{ fontSize: '16px', marginTop: '10px', marginBottom: '20px', color: '#ec933f' }}>
+            It will take 1-2 minutes to display your farm !
           </TitleText>
           <Stack alignItems="center" direction="row" spacing={3} justifyContent="space-evenly">
             <Button

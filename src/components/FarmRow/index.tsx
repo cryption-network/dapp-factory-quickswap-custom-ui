@@ -4,21 +4,25 @@ import {
   Text,
   Button,
 } from "cryption-uikit-v2";
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useCallback, forwardRef } from "react";
+import { Stack, TextField, Grid } from '@mui/material';
 import { ethers, Contract } from "ethers";
+import { styled as muiStyled } from '@mui/material/styles';
 import { LP_IMAGE_SEPERATOR_STRING } from '@cryption/dapp-factory-sdk';
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import styled from "styled-components";
 import BigNumber from "bignumber.js";
+import DatePicker from "react-datepicker";
 import CountUp from "react-countup";
 import useWeb3 from '../../hooks/useWeb3';
 import { Box } from '@mui/material';
 import { getFullDisplayBalance, getBalanceNumber } from "../../utils/formatBalance";
-import getCoinGeckoIds from "../../utils/getCoinGeckoIds";
 import getCoinGeckoPrice from "../../utils/getCoinGeckoPrice";
 import TokenInput from '../../components/TokenInput';
 import { useQuickswapSingleRewardContract } from "../../hooks/useContract";
 import tokenAbi from "../../config/constants/abi/token.json";
+import { getApollo } from "../../apollo";
+import { getTokenPrice } from '../../apollo/queries'
 
 const SECONDS_PER_YEAR = new BigNumber(31536000);
 const setMetamaskGasPrice = {
@@ -34,6 +38,105 @@ const CustomCard = styled(Box)`
   position: relative;
   cursor: pointer;
   background: ${({ theme }) => theme.colors.cardBg};
+`;
+const SubTitle = styled.p`
+  color: #c7cad9;
+  font-size: 18px;
+  font-weight: 500;
+  font-family: Inter;
+  line-height: 1.43;
+  text-align: left;
+  margin-bottom: 10px;
+`;
+const CustomButton = styled.button`
+  background-color: #12131A;
+  border: 1px solid #12131A;
+  border-radius: 10px;
+  padding: 10px;
+  width: 100%;
+  color: #ffffff;
+  font-size: 18px;
+  min-width: 300px;
+  height: 56px;
+`;
+const CssTextField = muiStyled(TextField)({
+  '& MuiInputBase-input': {
+    fontFamily: 'Inter',
+    color: '#c7cad9',
+    background: '#12131A'
+  },
+  '& label.Mui-focused': {
+    color: '#c7cad9',
+    borderColor: '#12131A !important',
+  },
+  '& label.MuiFormLabel-root': {
+    color: '#c7cad9',
+    fontFamily: 'Inter',
+  },
+  '& .MuiInput-underline:after': {
+    borderBottomColor: '#c7cad9',
+  },
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '10px',
+    color: '#c7cad9 !important',
+    background: '#12131A',
+    '& fieldset': {
+      borderColor: '#12131A !important',
+    },
+    '&:hover fieldset': {
+      borderColor: '#12131A !important',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: '#c7cad9d !important',
+    },
+  },
+  '& .Mui-disabled': {
+    '-webkit-text-fill-color': '#c7cad9 !important',
+    '& fieldset': {
+      borderColor: '#c7cad9 !important',
+    },
+    '&:hover fieldset': {
+      borderColor: '#c7cad9 !important',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: '#c7cad9d !important',
+    },
+  },
+});
+const ExampleCustomInput = forwardRef(({ value, onClick }: any, ref: any) => {
+  let split = value
+  if (value) {
+    split = value.split(' ');
+  }
+  return (
+    <CustomButton className="example-custom-input" onClick={onClick} ref={ref}>
+      <Stack direction="row" justifyContent="space-between">
+        <span>{split[0]}</span>
+        <span>{split[1]} UTC</span>
+      </Stack>
+    </CustomButton>
+  )
+});
+const InputWrapper = styled.div`
+  position: relative;
+  margin: 0;
+  fontFamily: 'Inter',
+
+  ${({ theme }) => theme.mediaQueries.sm} {
+    width: 234px;
+    display: block;
+  }
+
+  > div {
+    margin: 0;
+  }
+
+  > .react-datepicker__tab-loop
+    > .react-datepicker-popper
+    > div
+    > .react-datepicker {
+    display: flex !important;
+  }
 `;
 const CustomCardInner = styled(Box)`
   display: flex;
@@ -76,12 +179,19 @@ interface IFarmCard {
   getServiceId?: (id: string) => void;
   customgradient?: string;
   customPrimaryColor?: string;
+  chainId?: any;
+  coingeckoids?: any
 }
 
-export default function FarmRow({ farm, account, getServiceId, customgradient, customPrimaryColor }: IFarmCard) {
+export default function FarmRow({ farm, account, getServiceId, customgradient, customPrimaryColor, chainId, coingeckoids }: IFarmCard) {
   const quickswapSingleReward = useQuickswapSingleRewardContract(farm.id);
   const [approvalLoading, setApprovalLoading] = useState(false);
   const [isToken0ImgExists, setToken0ImgStatus] = useState(true);
+  const [notifyRewardData, setNotifyReward] = useState({
+    amount: "",
+    startTime: new Date(parseFloat(farm.periodFinish) * 1000),
+  });
+  const client = getApollo(chainId);
   const [pendingTx, setPendingTx] = useState(false);
   const [pendingStakeTx, setPendingStakeTx] = useState(false);
   const [pendingUnstakeTx, setPendingUnstakeTx] = useState(false);
@@ -90,6 +200,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
   );
   const [depositVal, setDepositVal] = useState("");
   const [withdrawVal, setWithdrawVal] = useState("");
+  const [pendingNotifyRewardsTx, setPendingNotifyRewardsTx] = useState(false);
   const [isSingleLpImg, setIsSingleLpImg] = useState(false);
   const [isToken1ImgExists, setToken1ImgStatus] = useState(true);
   const [token0Img, setToken0Img] = useState("");
@@ -190,12 +301,131 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
       // toastError("Error", "Failed to withdraw");
     }
   }
+  const formatUTC = (dateInt: Date | number, addOffset = false) => {
+    const date =
+      !dateInt || dateInt.toString().length < 1
+        ? new Date()
+        : new Date(dateInt);
+    if (typeof dateInt === "string") {
+      return date;
+    }
+    const offset = addOffset
+      ? date.getTimezoneOffset()
+      : -date.getTimezoneOffset();
+    const offsetDate = new Date();
+    offsetDate.setTime(date.getTime() + offset * 60000);
+    return offsetDate;
+  };
+  const notifyRewards = async () => {
+    if (farm) {
+      const differenceInSeconds = Math.floor(
+        (notifyRewardData.startTime.valueOf() -
+          new Date(Date.now()).valueOf()) /
+        1000
+      );
+      try {
+        const approvalAmount = ethers.utils.parseUnits(
+          notifyRewardData.amount.toString(),
+          farm.rewardToken.decimal
+        );
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const tokenContract = new Contract(
+          farm?.rewardToken.address,
+          tokenAbi.abi,
+          signer
+        );
+        setPendingNotifyRewardsTx(true);
+        const allowanceAmount = await tokenContract.allowance(account, farm.id);
+        if (
+          new BigNumber(allowanceAmount.toString()).isLessThan(
+            new BigNumber(approvalAmount.toString())
+          )
+        ) {
+          const approvalTx = await tokenContract.approve(farm.id, approvalAmount);
+          await approvalTx.wait();
+          await quickswapSingleReward.methods
+            .notifyRewardAmount(approvalAmount, differenceInSeconds)
+            .send({ from: account, ...setMetamaskGasPrice });
+        } else {
+          await quickswapSingleReward.methods
+            .notifyRewardAmount(approvalAmount, differenceInSeconds)
+            .send({ from: account, ...setMetamaskGasPrice });
+        }
+        setPendingNotifyRewardsTx(false);
+      } catch (error) {
+        setPendingNotifyRewardsTx(false);
+        console.error("Error while Starting Rewards: ", error);
+      }
+    }
+  };
   useEffect(() => {
     const getLiquidity = async () => {
-      const coinGeckoIds = await getCoinGeckoIds();
-      const token0PriceInUSD = await getCoinGeckoPrice(farm.token0Data.symbol.toLowerCase(), farm.token0Data.name, coinGeckoIds);
-      const token1PriceInUSD = await getCoinGeckoPrice(farm.token1Data.symbol.toLowerCase(), farm.token1Data.name, coinGeckoIds);
-      const rewardTokenPrice = await getCoinGeckoPrice(farm.rewardToken.symbol.toLowerCase(), farm.rewardToken.name, coinGeckoIds);
+      const token0Price = await client.query({
+        query: getTokenPrice,
+        variables: {
+          first: 1000,
+          skip: 0,
+          symbol: farm.token0Data.symbol.toUpperCase(),
+          name: farm.token0Data.name
+          // where: { symbol: "CNT" },
+        },
+        context: {
+          clientName: "tokenprice",
+        },
+      });
+      const token1Price = await client.query({
+        query: getTokenPrice,
+        variables: {
+          first: 1000,
+          skip: 0,
+          symbol: farm.token1Data.symbol.toUpperCase(),
+          name: farm.token1Data.name
+          // where: { symbol: "CNT" },
+        },
+        context: {
+          clientName: "tokenprice",
+        },
+      });
+      const rewardTokens = await client.query({
+        query: getTokenPrice,
+        variables: {
+          first: 1000,
+          skip: 0,
+          symbol: farm.rewardToken.symbol.toUpperCase(),
+          name: farm.rewardToken.name
+          // where: { symbol: "CNT" },
+        },
+        context: {
+          clientName: "tokenprice",
+        },
+      });
+      let token0PriceInUSD = '1'
+      let token1PriceInUSD = "1"
+      let rewardTokenPrice = "1"
+      if (token0Price.data && token0Price.data.tokens && token0Price.data.tokens.length > 0) {
+        token0PriceInUSD = new BigNumber(token0Price.data.tokens[0].tradeVolumeUSD).dividedBy(token0Price.data.tokens[0].tradeVolume).toFixed(4).toString();
+        if (parseFloat(token0PriceInUSD) <= 0) {
+          token0PriceInUSD = await getCoinGeckoPrice(farm.token0Data.symbol.toLowerCase(), farm.token0Data.name, coingeckoids);
+        }
+      } else {
+        token0PriceInUSD = await getCoinGeckoPrice(farm.token0Data.symbol.toLowerCase(), farm.token0Data.name, coingeckoids);
+      }
+      if (token1Price.data && token1Price.data.tokens && token1Price.data.tokens.length > 0) {
+        token1PriceInUSD = new BigNumber(token1Price.data.tokens[0].tradeVolumeUSD).dividedBy(token1Price.data.tokens[0].tradeVolume).toFixed(4).toString();
+        if (parseFloat(token1PriceInUSD) <= 0) {
+          token1PriceInUSD = await getCoinGeckoPrice(farm.token1Data.symbol.toLowerCase(), farm.token1Data.name, coingeckoids);
+        }
+      } else {
+        token1PriceInUSD = await getCoinGeckoPrice(farm.token1Data.symbol.toLowerCase(), farm.token1Data.name, coingeckoids);
+      }
+      if (rewardTokens.data && rewardTokens.data.tokens && rewardTokens.data.tokens.length > 0) {
+        rewardTokenPrice = new BigNumber(rewardTokens.data.tokens[0].tradeVolumeUSD).dividedBy(rewardTokens.data.tokens[0].tradeVolume).toFixed(4).toString();
+        if (parseFloat(rewardTokenPrice) <= 0) {
+          rewardTokenPrice = await getCoinGeckoPrice(farm.rewardToken.symbol.toLowerCase(), farm.rewardToken.name, coingeckoids);
+        }
+        rewardTokenPrice = await getCoinGeckoPrice(farm.rewardToken.symbol.toLowerCase(), farm.rewardToken.name, coingeckoids);
+      }
       let liquidityUsd = new BigNumber(token0PriceInUSD)
         .multipliedBy(farm.tokenAmount)
         .plus(
@@ -239,20 +469,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
       setLiquidity(liquidityUsd);
     };
     getLiquidity();
-  }, [
-    farm.lpTotalInQuoteToken,
-    farm.multiplier,
-    farm.quoteTokenAmount,
-    farm.rewardToken.name,
-    farm.rewardToken.rewardsPerToken,
-    farm.rewardToken.symbol,
-    farm.token0Data.name,
-    farm.token0Data.symbol,
-    farm.token1Data.name,
-    farm.token1Data.symbol,
-    farm.tokenAmount,
-    web3.utils,
-  ]);
+  }, [client, coingeckoids, farm.lpTotalInQuoteToken, farm.multiplier, farm.quoteTokenAmount, farm.rewardToken.name, farm.rewardToken.rewardsPerToken, farm.rewardToken.symbol, farm.token0Data.name, farm.token0Data.symbol, farm.token1Data.name, farm.token1Data.symbol, farm.tokenAmount, web3.utils]);
   useEffect(() => {
     if (
       farm.allowance &&
@@ -407,13 +624,13 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
               </Text>
             </Flex>
             <TokenInput value={depositVal} onChange={handleDepositChange} onSelectMax={handleSelectMax} />
-            {userAllowance && new BigNumber(userAllowance).dividedBy(10**18).isGreaterThanOrEqualTo(depositVal) ? (
+            {userAllowance && new BigNumber(userAllowance).dividedBy(10 ** 18).isGreaterThanOrEqualTo(depositVal) ? (
               <Flex justifyContent="center" marginTop="20px">
                 <Button
                   scale="md"
                   onClick={onStake}
                   style={{ backgroundImage: "linear-gradient(105deg,#448aff 3%,#448aff)", borderRadius: '10px', width: '100%' }}
-                  disabled={pendingStakeTx || new BigNumber(farm.tokenBalance).isGreaterThan(0)}
+                  disabled={pendingStakeTx || new BigNumber(farm.tokenBalance).isLessThanOrEqualTo(0) || parseFloat(depositVal) <= 0}
                 >
                   {pendingStakeTx ? 'Processing...' : 'Stake'}
                 </Button>
@@ -447,7 +664,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
                 scale="md"
                 style={{ backgroundImage: "linear-gradient(105deg,#448aff 3%,#448aff)", borderRadius: '10px', width: '100%' }}
                 onClick={onUnstake}
-                disabled={pendingUnstakeTx}
+                disabled={new BigNumber(stakedBalance).isLessThanOrEqualTo(0) || pendingUnstakeTx || parseFloat(withdrawVal) <= 0 || withdrawVal === ""}
               >
                 {pendingUnstakeTx ? 'Processing...' : 'Unstake'}
               </Button>
@@ -487,6 +704,71 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
               </Button>
             </Flex>
           </Box>
+          {account?.toLowerCase() === farm.owner.toLowerCase() &&
+            <div style={{ width: '100%', marginTop: '20px' }}>
+              <Text fontFamily="Inter" fontSize="18px" fontWeight="800" mb="20px">
+                Extend Farm Rewards
+              </Text>
+              <Grid container spacing={3}>
+                <Grid item xs={12} sm={12} md={6} lg={4}>
+                  <Flex
+                    justifyContent="flex-start"
+                    alignItems="flex-start"
+                    flexDirection="column"
+                  >
+                    <SubTitle>
+                      Reward Amount
+                    </SubTitle>
+                    <CssTextField
+                      fullWidth
+                      onChange={(event) => setNotifyReward(data => ({ ...data, amount: event.target.value }))}
+                      value={notifyRewardData.amount}
+                      type="number" id="outlined-basic"
+                      placeholder="Reward Amount"
+                      variant="outlined" />
+                  </Flex>
+                </Grid>
+                <Grid item xs={12} sm={12} md={6} lg={4}>
+                  <Flex
+                    justifyContent="flex-start"
+                    alignItems="flex-start"
+                    flexDirection="column"
+                  >
+                    <SubTitle>
+                      Extend Rewards Until
+                    </SubTitle>
+                    <InputWrapper>
+                      <DatePicker
+                        selected={formatUTC(notifyRewardData.startTime, true)}
+                        wrapperClassName="display-flex"
+                        showTimeSelect
+                        minDate={new Date(parseFloat(farm.periodFinish) * 1000)}
+                        timeFormat="HH:mm"
+                        timeIntervals={15}
+                        dateFormat="dd/MM/yyyy HH:mm"
+                        onChange={(date: any) => {
+                          setNotifyReward(data => ({ ...data, startTime: formatUTC(date) }))
+                        }}
+                        customInput={<ExampleCustomInput />}
+                      />
+                    </InputWrapper>
+                  </Flex>
+                </Grid>
+                <Grid item xs={12} sm={12} md={6} lg={4}>
+                  <Flex justifyContent="center" alignItems="center" style={{ height: '100%' }}>
+                    <Button
+                      scale="md"
+                      style={{ backgroundImage: "linear-gradient(105deg,#448aff 3%,#448aff)", borderRadius: '10px', width: '100%' }}
+                      onClick={notifyRewards}
+                      disabled={pendingNotifyRewardsTx}
+                    >
+                      {pendingNotifyRewardsTx ? 'Processing...' : 'Extend Rewards'}
+                    </Button>
+                  </Flex>
+                </Grid>
+              </Grid>
+            </div>
+          }
         </FarmDetails>
       }
       <BottomRow>
