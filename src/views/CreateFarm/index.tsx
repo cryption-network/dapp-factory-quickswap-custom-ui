@@ -439,29 +439,41 @@ function CreateFarm(props: any) {
   const checkMinimumRewards = async () => {
     if (farmData.amount && parseFloat(farmData.amount) > 0 && farmData.rewardToken && farmData.rewardToken.address.length > 0 && farmData.rewardDuration) {
       var difference = (farmData.rewardDuration - new Date()) / 1000;
-      const { data } = await client.query({
-        query: getTokenPrice,
-        variables: {
-          first: 1000,
-          skip: 0,
-          symbol: farmData.rewardToken.symbol.toUpperCase(),
-          name: farmData.rewardToken.name
-          // where: { symbol: "CNT" },
-        },
-        context: {
-          clientName: "tokenprice",
-        },
-      });
       let token0USD = "0"
-      if (data && data.tokens && data.tokens.length > 0) {
-        token0USD = new BigNumber(data.tokens[0].tradeVolumeUSD).dividedBy(data.tokens[0].tradeVolume).toFixed(4).toString();
+      if (farmData.rewardToken.symbol.toLowerCase() === 'usdt' || farmData.rewardToken.symbol.toLowerCase() === 'usdc' || farmData.rewardToken.symbol.toLowerCase() === 'dai') {
+        token0USD = "1"
       } else {
-        const coingeckoIds = await getCoinGeckoIds();
-        token0USD = await getCoinGeckoPrice(
-          farmData.rewardToken.symbol.toLowerCase(),
-          farmData.rewardToken.name,
-          coingeckoIds
-        );
+        const { data } = await client.query({
+          query: getTokenPrice,
+          variables: {
+            first: 1000,
+            skip: 0,
+            symbol: farmData.rewardToken.symbol.toUpperCase(),
+            name: farmData.rewardToken.name
+            // where: { symbol: "CNT" },
+          },
+          context: {
+            clientName: "tokenprice",
+          },
+        });
+        if (data && data.tokens && data.tokens.length > 0) {
+          token0USD = new BigNumber(data.tokens[0].tradeVolumeUSD).dividedBy(data.tokens[0].tradeVolume).toFixed(4).toString();
+          if (parseFloat(token0USD) <= 0) {
+            const coingeckoIds = await getCoinGeckoIds();
+            token0USD = await getCoinGeckoPrice(
+              farmData.rewardToken.symbol.toLowerCase(),
+              farmData.rewardToken.name,
+              coingeckoIds
+            );
+          }
+        } else {
+          const coingeckoIds = await getCoinGeckoIds();
+          token0USD = await getCoinGeckoPrice(
+            farmData.rewardToken.symbol.toLowerCase(),
+            farmData.rewardToken.name,
+            coingeckoIds
+          );
+        }
       }
       const rewardsPerSec = MIN_REWARDS_PER_MONTH / difference
       let rewardsPerMonth = rewardsPerSec * 86400 * 30
@@ -511,28 +523,40 @@ function CreateFarm(props: any) {
         .allowance(account, factoryContractAddress)
         .call();
       setAllowanceAmount(allowance);
-      const { data } = await client.query({
-        query: getTokenPrice,
-        variables: {
-          first: 1000,
-          skip: 0,
-          symbol: token.symbol.toUpperCase(),
-          name: token.name
-        },
-        context: {
-          clientName: "tokenprice",
-        },
-      });
       let token0USD = "0"
-      if (data && data.tokens && data.tokens.length > 0) {
-        token0USD = new BigNumber(data.tokens[0].tradeVolumeUSD).dividedBy(data.tokens[0].tradeVolume).toFixed(4).toString();
+      if (farmData.rewardToken.symbol.toLowerCase() === 'usdt' || farmData.rewardToken.symbol.toLowerCase() === 'usdc' || farmData.rewardToken.symbol.toLowerCase() === 'dai') {
+        token0USD = "1"
       } else {
-        const coingeckoIds = await getCoinGeckoIds();
-        token0USD = await getCoinGeckoPrice(
-          token.symbol.toLowerCase(),
-          token.name,
-          coingeckoIds
-        );
+        const { data } = await client.query({
+          query: getTokenPrice,
+          variables: {
+            first: 1000,
+            skip: 0,
+            symbol: token.symbol.toUpperCase(),
+            name: token.name
+          },
+          context: {
+            clientName: "tokenprice",
+          },
+        });
+        if (data && data.tokens && data.tokens.length > 0) {
+          token0USD = new BigNumber(data.tokens[0].tradeVolumeUSD).dividedBy(data.tokens[0].tradeVolume).toFixed(4).toString();
+          if (parseFloat(token0USD) <= 0) {
+            const coingeckoIds = await getCoinGeckoIds();
+            token0USD = await getCoinGeckoPrice(
+              token.symbol.toLowerCase(),
+              token.name,
+              coingeckoIds
+            );
+          }
+        } else {
+          const coingeckoIds = await getCoinGeckoIds();
+          token0USD = await getCoinGeckoPrice(
+            token.symbol.toLowerCase(),
+            token.name,
+            coingeckoIds
+          );
+        }
       }
       const minimumRewards = farmData.amount * parseFloat(token0USD);
       setFarmData(currentfarmData => ({
@@ -645,7 +669,7 @@ function CreateFarm(props: any) {
       <Modal open={successModal} title="Transaction Successfull" onClose={() => toggleSuccessModal(false)}>
         <Stack alignItems="center" justifyContent="center">
           <CheckCircleRoundedIcon sx={{ color: '#11A569', fontSize: '50px' }} />
-          <TitleText style={{ fontSize: '18px', marginTop: '10px',}}>
+          <TitleText style={{ fontSize: '18px', marginTop: '10px', }}>
             Farm Created Successfully !
           </TitleText>
           <TitleText style={{ fontSize: '16px', marginTop: '10px', marginBottom: '20px', color: '#ec933f' }}>
@@ -861,7 +885,7 @@ function CreateFarm(props: any) {
             <div>
               <Stack direction="row" alignItems="center">
                 <img src={calendarIcon} width="24px" alt="calendar" style={{ marginRight: '10px' }} />
-                <SubTitle>Select Start Date and Time</SubTitle>
+                <SubTitle>Rewards End Date and Time.</SubTitle>
               </Stack>
               <InputWrapper>
                 <DatePicker

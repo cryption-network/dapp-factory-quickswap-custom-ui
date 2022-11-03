@@ -705,7 +705,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
               </Button>
             </Flex>
           </Box>
-          {account?.toLowerCase() === farm.owner.toLowerCase() &&
+          {false && account?.toLowerCase() === farm.owner.toLowerCase() &&
             <div style={{ width: '100%', marginTop: '20px' }}>
               <Text fontFamily="Inter" fontSize="18px" fontWeight="800" mb="20px">
                 Extend Farm Rewards
