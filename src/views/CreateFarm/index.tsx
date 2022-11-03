@@ -463,7 +463,6 @@ function CreateFarm(props: any) {
           coingeckoIds
         );
       }
-      console.log({ token0USD })
       const rewardsPerSec = MIN_REWARDS_PER_MONTH / difference
       let rewardsPerMonth = rewardsPerSec * 86400 * 30
       rewardsPerMonth = rewardsPerMonth / parseFloat(token0USD);
