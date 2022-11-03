@@ -4,7 +4,8 @@ import { HttpLink, from, split } from "@apollo/client";
 import { RetryLink } from "@apollo/client/link/retry";
 
 const subgraphlinks = {
-  quickswaptokenprice: "https://api.fura.org/subgraphs/name/quickswap",
+  quickswaptokenprice:
+    "https://api.thegraph.com/subgraphs/name/sameepsi/quickswap06",
 };
 export const funlink = () => {
   const quickswaptokenprice = from([
