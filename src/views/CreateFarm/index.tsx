@@ -37,7 +37,7 @@ import rewardAmountIcon from '../../images/rewardAmount.png';
 import addIcon from '../../images/addIcon.png';
 import { MIN_REWARDS, QUICKSWAP_TOKE_URL, MIN_REWARDS_PER_MONTH } from '../../config';
 import { getApollo } from "../../apollo";
-import { getTokenPrice } from '../../apollo/queries'
+import { getTokenPrice, ETH_PRICE } from '../../apollo/queries'
 
 const TitleText = styled.p`
   color: #c7cad9;
@@ -203,6 +203,7 @@ function CreateFarm(props: any) {
   const [isValidPair, toggleValidPairAddress] = useState(null);
   const [tokens, setTokens] = useState([]);
   const [pendingTxn, togglePendingTx] = useState(false);
+  const [ethPrice, setEthPrice] = useState("0");
   const [pendingApproveTxn, togglePendingApproveTx] = useState(false);
   const [showInputtoken0Modal, toggleInputtoken0Modal] = useState(false);
   const [successModal, toggleSuccessModal] = useState(false);
@@ -448,8 +449,7 @@ function CreateFarm(props: any) {
           variables: {
             first: 1000,
             skip: 0,
-            symbol: farmData.rewardToken.symbol.toUpperCase(),
-            name: farmData.rewardToken.name
+            id: farmData.rewardToken.address.toLowerCase(),
             // where: { symbol: "CNT" },
           },
           context: {
@@ -457,7 +457,7 @@ function CreateFarm(props: any) {
           },
         });
         if (data && data.tokens && data.tokens.length > 0) {
-          token0USD = new BigNumber(data.tokens[0].tradeVolumeUSD).dividedBy(data.tokens[0].tradeVolume).toFixed(4).toString();
+          token0USD = new BigNumber(data.tokens[0].derivedETH).multipliedBy(ethPrice).toFixed(4).toString();
           if (parseFloat(token0USD) <= 0) {
             const coingeckoIds = await getCoinGeckoIds();
             token0USD = await getCoinGeckoPrice(
@@ -532,15 +532,14 @@ function CreateFarm(props: any) {
           variables: {
             first: 1000,
             skip: 0,
-            symbol: token.symbol.toUpperCase(),
-            name: token.name
+            id: token.address.toLowerCase(),
           },
           context: {
             clientName: "tokenprice",
           },
         });
         if (data && data.tokens && data.tokens.length > 0) {
-          token0USD = new BigNumber(data.tokens[0].tradeVolumeUSD).dividedBy(data.tokens[0].tradeVolume).toFixed(4).toString();
+          token0USD = new BigNumber(data.tokens[0].derivedETH).multipliedBy(ethPrice).toFixed(4).toString();
           if (parseFloat(token0USD) <= 0) {
             const coingeckoIds = await getCoinGeckoIds();
             token0USD = await getCoinGeckoPrice(
@@ -643,9 +642,20 @@ function CreateFarm(props: any) {
       }
     }
     if (account) {
-
       checkfee()
     }
+    const getEthPrice = async () => {
+      const ethPrcie = await client.query({
+        query: ETH_PRICE,
+        context: {
+          clientName: "tokenprice",
+        },
+      });
+      if (ethPrcie.data && ethPrcie.data.bundles && ethPrcie.data.bundles.length>0){
+        setEthPrice(ethPrcie.data.bundles[0].ethPrice)
+      }
+    }
+    getEthPrice()
     getToknList()
   }, [chainId, account])
   useEffect(() => {

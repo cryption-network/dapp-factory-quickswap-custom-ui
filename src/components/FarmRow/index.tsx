@@ -181,9 +181,10 @@ interface IFarmCard {
   customPrimaryColor?: string;
   chainId?: any;
   coingeckoids?: any
+  ethPrice?:any
 }
 
-export default function FarmRow({ farm, account, getServiceId, customgradient, customPrimaryColor, chainId, coingeckoids }: IFarmCard) {
+export default function FarmRow({ farm, account, getServiceId, customgradient, customPrimaryColor, chainId, coingeckoids, ethPrice }: IFarmCard) {
   const quickswapSingleReward = useQuickswapSingleRewardContract(farm.id);
   const [approvalLoading, setApprovalLoading] = useState(false);
   const [isToken0ImgExists, setToken0ImgStatus] = useState(true);
@@ -366,8 +367,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
         variables: {
           first: 1000,
           skip: 0,
-          symbol: farm.token0Data.symbol.toUpperCase(),
-          name: farm.token0Data.name
+          id: farm.token0Data.address.toLowerCase(),
           // where: { symbol: "CNT" },
         },
         context: {
@@ -379,8 +379,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
         variables: {
           first: 1000,
           skip: 0,
-          symbol: farm.token1Data.symbol.toUpperCase(),
-          name: farm.token1Data.name
+          id: farm.token1Data.address.toLowerCase(),
           // where: { symbol: "CNT" },
         },
         context: {
@@ -392,8 +391,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
         variables: {
           first: 1000,
           skip: 0,
-          symbol: farm.rewardToken.symbol.toUpperCase(),
-          name: farm.rewardToken.name
+          id: farm.rewardToken.address.toLowerCase(),
           // where: { symbol: "CNT" },
         },
         context: {
@@ -404,7 +402,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
       let token1PriceInUSD = "1"
       let rewardTokenPrice = "1"
       if (token0Price.data && token0Price.data.tokens && token0Price.data.tokens.length > 0) {
-        token0PriceInUSD = new BigNumber(token0Price.data.tokens[0].tradeVolumeUSD).dividedBy(token0Price.data.tokens[0].tradeVolume).toFixed(4).toString();
+        token0PriceInUSD = new BigNumber(token0Price.data.tokens[0].derivedETH).multipliedBy(ethPrice).toFixed(4).toString();
         if (parseFloat(token0PriceInUSD) <= 0) {
           token0PriceInUSD = await getCoinGeckoPrice(farm.token0Data.symbol.toLowerCase(), farm.token0Data.name, coingeckoids);
         }
@@ -412,7 +410,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
         token0PriceInUSD = await getCoinGeckoPrice(farm.token0Data.symbol.toLowerCase(), farm.token0Data.name, coingeckoids);
       }
       if (token1Price.data && token1Price.data.tokens && token1Price.data.tokens.length > 0) {
-        token1PriceInUSD = new BigNumber(token1Price.data.tokens[0].tradeVolumeUSD).dividedBy(token1Price.data.tokens[0].tradeVolume).toFixed(4).toString();
+        token1PriceInUSD = new BigNumber(token1Price.data.tokens[0].derivedETH).multipliedBy(ethPrice).toFixed(4).toString();
         if (parseFloat(token1PriceInUSD) <= 0) {
           token1PriceInUSD = await getCoinGeckoPrice(farm.token1Data.symbol.toLowerCase(), farm.token1Data.name, coingeckoids);
         }
@@ -420,7 +418,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
         token1PriceInUSD = await getCoinGeckoPrice(farm.token1Data.symbol.toLowerCase(), farm.token1Data.name, coingeckoids);
       }
       if (rewardTokens.data && rewardTokens.data.tokens && rewardTokens.data.tokens.length > 0) {
-        rewardTokenPrice = new BigNumber(rewardTokens.data.tokens[0].tradeVolumeUSD).dividedBy(rewardTokens.data.tokens[0].tradeVolume).toFixed(4).toString();
+        rewardTokenPrice = new BigNumber(rewardTokens.data.tokens[0].derivedETH).multipliedBy(ethPrice).toFixed(4).toString();
         if (parseFloat(rewardTokenPrice) <= 0) {
           rewardTokenPrice = await getCoinGeckoPrice(farm.rewardToken.symbol.toLowerCase(), farm.rewardToken.name, coingeckoids);
         }

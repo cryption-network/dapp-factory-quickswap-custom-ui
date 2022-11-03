@@ -12,11 +12,14 @@ import { Button, Stack } from '@mui/material';
 import {
   fetchFarms
 } from "@cryption/dapp-factory-sdk";
+import { getApollo } from "../../apollo";
 import useActiveWeb3React from "../../hooks";
 import FarmRow from '../../components/FarmRow';
 import getCoinGeckoIds from "../../utils/getCoinGeckoIds";
 import PoweredByCryptionNetwork from '../../images/PoweredByDappfactory.png';
 import { QUICKSWAP_TOKE_URL } from '../../config/index';
+import { ETH_PRICE } from '../../apollo/queries'
+
 
 const TitleText = styled.p`
   color: #c7cad9;
@@ -94,6 +97,8 @@ function Home(props: any) {
   const currentDate = Math.floor(new Date().getTime() / 1000);
   const { chainId, account } = useActiveWeb3React();
   const [allFarms, setAllFarms] = useState<any>([]);
+  const [ethPrice, setEthPrice] = useState("0");
+  const client = getApollo(chainId);
   const [coingeckoids, setCoingeckoids] = useState<any>([]);
   const [activeFarms, setActiveFarms] = useState([]);
   const [finishedFarms, setFinishedFarms] = useState([]);
@@ -200,8 +205,21 @@ function Home(props: any) {
       const coinGeckoIds = await getCoinGeckoIds();
       setCoingeckoids(coinGeckoIds);
     }
+    const getEthPrice = async () => {
+      const ethPrcie = await client.query({
+        query: ETH_PRICE,
+        context: {
+          clientName: "tokenprice",
+        },
+      });
+      if (ethPrcie.data && ethPrcie.data.bundles && ethPrcie.data.bundles.length > 0) {
+        setEthPrice(ethPrcie.data.bundles[0].ethPrice)
+      }
+    }
+    getEthPrice()
     coingecko();
     
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   },[])
   return (
     <div>
@@ -305,6 +323,7 @@ function Home(props: any) {
               farm={eachFarm}
               coingeckoids={coingeckoids}
               chainId={chainId||80001}
+              ethPrice={ethPrice}
             />
           ))}
         {!stakedOnly && alignment === 'active' &&
@@ -312,6 +331,7 @@ function Home(props: any) {
           activeFarms.length > 0 &&
           activeFarms.map((eachFarm) => (
             <FarmRow
+              ethPrice={ethPrice}
               account={account || undefined}
               farm={eachFarm}
               coingeckoids={coingeckoids}
@@ -326,6 +346,7 @@ function Home(props: any) {
               account={account || undefined}
               farm={eachFarm}
               coingeckoids={coingeckoids}
+              ethPrice={ethPrice}
               chainId={chainId || 80001}
             />
           ))}

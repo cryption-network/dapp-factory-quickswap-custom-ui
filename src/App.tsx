@@ -4,7 +4,10 @@ import { UnsupportedChainIdError, useWeb3React } from '@web3-react/core';
 import { AbstractConnector } from '@web3-react/abstract-connector';
 import { WalletConnectConnector } from '@web3-react/walletconnect-connector';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import Popover from '@mui/material/Popover';
+import { styled as muiStyled } from '@mui/material/styles';
 import { Container, Stack, Button } from '@mui/material';
+import { Text } from 'cryption-uikit-v2';
 import history from "./routerHistory";
 // import {
 //   CreateFarm
@@ -21,6 +24,12 @@ import './App.css';
 import { SUPPORTED_WALLETS } from './config';
 import MetamaskIcon from "./images/metamask.png";
 import styled from 'styled-components';
+
+const MuiPopover = muiStyled(Popover)({
+  '&.MuiPaper-root': {
+    backgroundColor: '#106ba3',
+  },
+});
 
 const ConnectedWalletDiv = styled.div`
   padding: 16px;
@@ -48,15 +57,45 @@ const StyledLink = styled.a`
   margin-right: 12px;
   color: #696c80;
 `;
+const SwitchButton = styled.button`
+        width: 100%;
+    height: 46px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 20px;
+    border: 1px solid #448aff;
+    color: #448aff;
+    font-size: 16px;
+    font-weight: 600;
+    background: transparent;
+    font-family: Inter;
+    margin-top: 20px;
+`
+
 function App() {
   useEagerConnect()
   const [loginModal, toggleLoginModal] = useState(false);
   const [showLoginOptions, toggleLoginOptions] = useState(false);
   const {
     account,
+    chainId,
     connector,
     activate,
   } = useWeb3React();
+  const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
+
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const open = Boolean(anchorEl);
+  const id = open ? 'simple-popover' : undefined;
   const loginToAccount = () => {
     if (account === undefined || account === null) {
       toggleLoginOptions(true)
@@ -131,6 +170,42 @@ function App() {
       )
     })
   }
+  const swtichToPolygon = async () => {
+    if (window.ethereum) {
+      try {
+        const chainIdFallback = parseInt("137", 10);
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: `0x${chainIdFallback.toString(16)}` }],
+        });
+        return true;
+      } catch (error) {
+        if (error.code === 4902) {
+          // @ts-ignore
+          await provider.request({
+            method: "wallet_addEthereumChain",
+            params: [
+              {
+                chainId: `0x${chainIdFallback.toString(16)}`,
+                chainName: "Matic",
+                nativeCurrency: {
+                  name: NATIVE_TOKENS[chainIdFallback].name,
+                  symbol: NATIVE_TOKENS[chainIdFallback].symbol,
+                  decimals: NATIVE_TOKENS[chainIdFallback].decimals,
+                },
+                // @ts-ignore
+                rpcUrls: nodes[chainIdFallback],
+                blockExplorerUrls: ["https://polygonscan.com/"],
+              },
+            ],
+          });
+          return true;
+        }
+        console.error(error);
+        return false;
+      }
+    }
+  }
   return (
     <Container maxWidth="xl">
       <Modal open={loginModal} title="Account" onClose={() => toggleLoginModal(false)}>
@@ -188,8 +263,10 @@ function App() {
           {getOptions()}
         </div>
       </Modal>
-      <Stack direction="row" justifyContent="space-between" sx={{ marginBottom: '20px', marginTop: '20px', position: 'relative', zIndex:2 }}>
-        <img src={quickLogo} alt="quick logo" width="150px" />
+      <Stack direction="row" justifyContent="space-between" sx={{ marginBottom: '20px', marginTop: '20px', position: 'relative', zIndex: 2 }}>
+        <StyledLink href="/">
+          <img src={quickLogo} alt="quick logo" width="150px" />
+        </StyledLink>
         <Stack direction="row" spacing={3} justifyContent="space-between" alignItems="center">
           <StyledLink href='https://quickswap.exchange/#/swap' target="_blank">Swap</StyledLink>
           <StyledLink href='https://quickswap.exchange/#/pools'>Pool</StyledLink>
@@ -199,41 +276,121 @@ function App() {
           <StyledLink href='https://quickswap.exchange/#/prdt'>Predictions</StyledLink>
           <StyledLink href='https://quickswap.exchange/#/analytics'>Analytics</StyledLink>
         </Stack>
-        <Stack direction="row" spacing={3} justifyContent="space-between">
-          {account ?
-            <Button
-              onClick={loginToAccount}
+        {window && window.ethereum && (window.ethereum.networkVersion === '80001' || window.ethereum.networkVersion === '137') ?
+          <Stack direction="row" spacing={3} justifyContent="space-between">
+            {account ?
+              <div>
+                {chainId === 80001 || chainId === 137 ? <Button
+                  onClick={loginToAccount}
+                  sx={{
+                    border: '1px solid #3e4252',
+                    color: '#c7cad9',
+                    height: '48px',
+                    cursor: 'pointer',
+                    padding: '6px 18px',
+                    borderRadius: '30px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {shortenAddress(account)}
+                </Button> :
+                  <div>
+                    <Button aria-describedby={id} variant="contained" onClick={handleClick}
+                      sx={{
+                        background: '#ff5252',
+                        borderRadius: '20px',
+                        fontFamily: 'Inter',
+                        height: '36px'
+                      }}
+                    // onMouseEnter={handleClick} onMouseLeave={handleClose}
+                    >
+                      <Text fontFamily="Inter" style={{ color: '#fff' }} fontSize="14px" fontWeight="600">Wrong Network</Text>
+                    </Button>
+                    <MuiPopover
+                      id={id}
+                      sx={{
+                        '& .MuiPaper-root': {
+                          background: 'transparent'
+                        },
+                      }}
+                      open={open}
+                      anchorEl={anchorEl}
+                      onClose={handleClose}
+                      anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'left',
+                      }}
+                    >
+                      <div style={{
+                        background: '#12131a',
+                        borderRadius: '10px',
+                        padding: '24px'
+                      }}>
+                        <Text fontFamily="Inter" style={{ color: '#b6b9cc' }} fontSize="16px" fontWeight="800">Please switch your wallet to Polygon Network.</Text>
+                        <SwitchButton onClick={swtichToPolygon}>Switch To Polygon</SwitchButton>
+                      </div>
+                    </MuiPopover>
+                  </div>
+                }
+              </div>
+              :
+              <Button
+                onClick={loginToAccount}
+                sx={{
+                  backgroundImage: 'linear-gradient(105deg,#448aff 3%,#004ce6)',
+                  color: '#ffffff',
+                  height: '48px',
+                  fontFamily: 'Inter',
+                  fontWeight: '700',
+                  padding: '6px 18px',
+                  borderRadius: '30px',
+                }}
+              >
+                Connect To Wallet
+              </Button>
+            }
+          </Stack>
+          :
+          <div>
+            <Button aria-describedby={id} variant="contained" onClick={handleClick}
               sx={{
-                border: '1px solid #3e4252',
-                color: '#c7cad9',
-                height: '48px',
-                cursor: 'pointer',
-                padding: '6px 18px',
-                borderRadius: '30px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {shortenAddress(account)}
-            </Button>
-            :
-            <Button
-              onClick={loginToAccount}
-              sx={{
-                backgroundImage: 'linear-gradient(105deg,#448aff 3%,#004ce6)',
-                color: '#ffffff',
-                height: '48px',
+                background: '#ff5252',
+                borderRadius: '20px',
                 fontFamily: 'Inter',
-                fontWeight: '700',
-                padding: '6px 18px',
-                borderRadius: '30px',
+                height: '36px'
+              }}
+            // onMouseEnter={handleClick} onMouseLeave={handleClose}
+            >
+              <Text fontFamily="Inter" style={{ color: '#fff' }} fontSize="14px" fontWeight="600">Wrong Network</Text>
+            </Button>
+            <MuiPopover
+              id={id}
+              sx={{
+                '& .MuiPaper-root': {
+                  background: 'transparent'
+                },
+              }}
+              open={open}
+              anchorEl={anchorEl}
+              onClose={handleClose}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'left',
               }}
             >
-              Connect To Wallet
-            </Button>
-          }
-        </Stack>
+              <div style={{
+                background: '#12131a',
+                borderRadius: '10px',
+                padding: '24px'
+              }}>
+                <Text fontFamily="Inter" style={{ color: '#b6b9cc' }} fontSize="16px" fontWeight="800">Please switch your wallet to Polygon Network.</Text>
+                <SwitchButton onClick={swtichToPolygon}>Switch To Polygon</SwitchButton>
+              </div>
+            </MuiPopover>
+          </div>
+        }
       </Stack>
       <Router history={history}>
         <Switch>
