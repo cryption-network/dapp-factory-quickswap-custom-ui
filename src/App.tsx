@@ -214,7 +214,7 @@ function App() {
             <Stack direction="row" justifyContent="space-between">
               {formatConnectorName()}
               <Stack direction="row" alignItems="center" spacing={2}>
-                {connector !== injected &&
+                {false && connector !== injected &&
                   connector !== walletlink &&
                   <span
                     style={{ fontSize: '14px', fontWeight: '800', fontFamily: 'Inter', cursor: 'pointer', marginRight: '10px', marginLeft: '20px' }}
