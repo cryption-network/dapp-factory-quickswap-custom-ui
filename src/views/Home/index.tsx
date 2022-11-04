@@ -181,6 +181,10 @@ function Home(props: any) {
       }
     }
     getFarms()
+    const intervalId = setInterval(() => {
+      getFarms()
+    }, 1000 * 30) // in milliseconds
+    return () => clearInterval(intervalId)
   }, [account, chainId]);
   useEffect(() => {
     if (allFarms.length > 0) {
@@ -200,7 +204,7 @@ function Home(props: any) {
       setStakedFarms(() => staked);
     }
   }, [allFarms, currentDate]);
-  useEffect(()=>{
+  useEffect(() => {
     const coingecko = async () => {
       const coinGeckoIds = await getCoinGeckoIds();
       setCoingeckoids(coinGeckoIds);
@@ -218,9 +222,9 @@ function Home(props: any) {
     }
     getEthPrice()
     coingecko();
-    
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[])
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   return (
     <div>
       <div className='heroBkg'>
@@ -322,7 +326,7 @@ function Home(props: any) {
               account={account || undefined}
               farm={eachFarm}
               coingeckoids={coingeckoids}
-              chainId={chainId||80001}
+              chainId={chainId || 80001}
               ethPrice={ethPrice}
             />
           ))}

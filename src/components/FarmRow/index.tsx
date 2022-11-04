@@ -181,7 +181,7 @@ interface IFarmCard {
   customPrimaryColor?: string;
   chainId?: any;
   coingeckoids?: any
-  ethPrice?:any
+  ethPrice?: any
 }
 
 export default function FarmRow({ farm, account, getServiceId, customgradient, customPrimaryColor, chainId, coingeckoids, ethPrice }: IFarmCard) {
@@ -400,9 +400,9 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
           clientName: "tokenprice",
         },
       });
-      let token0PriceInUSD = '1'
-      let token1PriceInUSD = "1"
-      let rewardTokenPrice = "1"
+      let token0PriceInUSD = '0'
+      let token1PriceInUSD = "0"
+      let rewardTokenPrice = "0"
       if (token0Price.data && token0Price.data.tokens && token0Price.data.tokens.length > 0) {
         token0PriceInUSD = new BigNumber(token0Price.data.tokens[0].derivedETH).multipliedBy(ethPrice).toFixed(4).toString();
         if (parseFloat(token0PriceInUSD) <= 0) {
@@ -433,7 +433,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
             new BigNumber(farm.quoteTokenAmount)
           )
         );
-      if (token0PriceInUSD) {
+      if (parseFloat(token1PriceInUSD) <= 0) {
         liquidityUsd = new BigNumber(token0PriceInUSD)
           .multipliedBy(farm.tokenAmount)
           .plus(
@@ -441,7 +441,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
               new BigNumber(farm.tokenAmount)
             )
           );
-      } else if (token1PriceInUSD) {
+      } else if (parseFloat(token0PriceInUSD) <= 0) {
         liquidityUsd = new BigNumber(token1PriceInUSD)
           .multipliedBy(farm.quoteTokenAmount)
           .plus(
@@ -450,15 +450,13 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
             )
           );
       }
-      const cakeRewardPerBlock = new BigNumber(
-        web3.utils.fromWei(farm.rewardToken.rewardsPerToken.toString())
-      );
-
+      const cakeRewardPerBlock = new BigNumber(farm.rewardToken.rewardsPerToken.toString()).dividedBy(10 ** parseFloat(farm.rewardToken.decimal));
+      liquidityUsd = liquidityUsd.multipliedBy(farm.totalInputTokensStaked).dividedBy(10 ** 18);
       const denominator = new BigNumber(
         liquidityUsd
       ).isGreaterThan(0)
         ? liquidityUsd
-        : new BigNumber(1);
+        : new BigNumber(1).dividedBy(10**18);
 
       const calculatedAPY = new BigNumber(rewardTokenPrice)
         .multipliedBy(SECONDS_PER_YEAR)
@@ -469,7 +467,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
       setLiquidity(liquidityUsd);
     };
     getLiquidity();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [farm.lpTotalInQuoteToken, farm.multiplier, farm.quoteTokenAmount, farm.rewardToken.name, farm.rewardToken.rewardsPerToken, farm.rewardToken.symbol, farm.token0Data.name, farm.token0Data.symbol, farm.token1Data.name, farm.token1Data.symbol, farm.tokenAmount, web3.utils]);
   useEffect(() => {
     if (
@@ -573,7 +571,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
             <CountUp
               end={liquidity?.toNumber()}
               duration={1}
-              decimals={2}
+              decimals={4}
               suffix="$"
             />
           </Text>
