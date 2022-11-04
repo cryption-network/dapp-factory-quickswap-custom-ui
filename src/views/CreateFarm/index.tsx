@@ -557,9 +557,14 @@ function CreateFarm(props: any) {
           );
         }
       }
-      const minimumRewards = farmData.amount * parseFloat(token0USD);
+      const difference = (farmData.rewardDuration - new Date()) / 1000;
+      const rewardsPerSec = MIN_REWARDS_PER_MONTH / difference
+      let rewardsPerMonth = rewardsPerSec * 86400 * 30
+      rewardsPerMonth = rewardsPerMonth / parseFloat(token0USD);
+      const minimumRewards = MIN_REWARDS / parseFloat(token0USD);
       setFarmData(currentfarmData => ({
         ...currentfarmData,
+        rewardsPerMonth: rewardsPerMonth,
         minRewardAmount: minimumRewards
       }));
       checkMinimumRewards()
@@ -895,6 +900,7 @@ function CreateFarm(props: any) {
                 placeholder="Reward Amount"
                 variant="outlined" />
               {/* <SubTitle style={{ fontSize: '12px', color: '#696C80', marginTop: '10px' }}>*Min. Reward amount  Should be $ {MIN_REWARDS} {farmData.rewardToken.symbol && parseFloat(farmData.minRewardAmount) > 0 && `( ${farmData.minRewardAmount} ${farmData.rewardToken.symbol} )`}</SubTitle> */}
+              <SubTitle style={{ fontSize: '12px', color: '#696C80', marginTop: '10px', textAlign: 'center' }}>*Min. Rewards Per Month Should be ${MIN_REWARDS_PER_MONTH}   {farmData.rewardToken.symbol && parseFloat(farmData.rewardsPerMonth) > 0 && `( ${farmData.rewardsPerMonth} ${farmData.rewardToken.symbol} )`}</SubTitle>
             </div>
             <div>
               <Stack direction="row" alignItems="center">
@@ -919,7 +925,6 @@ function CreateFarm(props: any) {
                   customInput={<ExampleCustomInput />}
                 />
               </InputWrapper>
-              <SubTitle style={{ fontSize: '12px', color: '#696C80', marginTop: '10px', textAlign: 'center' }}>*Min. Rewards Per Month Should be ${MIN_REWARDS_PER_MONTH}   {farmData.rewardToken.symbol && parseFloat(farmData.rewardsPerMonth) > 0 && `( ${farmData.rewardsPerMonth} ${farmData.rewardToken.symbol} )`}</SubTitle>
             </div>
             {feeManagerDetails.isFeeManagerEnabled &&
               <FeesContainer>
