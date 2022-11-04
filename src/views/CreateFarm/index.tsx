@@ -295,10 +295,13 @@ function CreateFarm(props: any) {
         togglePendingTx(false)
         toggleSuccessModal(true)
       } catch (error) {
+        toggleSuccessModal(false)
         togglePendingTx(false)
         console.error('error', error)
       }
     } catch (error) {
+      console.log('error', error);
+      toggleSuccessModal(false)
       togglePendingTx(false)
       console.error(error);
     }
@@ -360,6 +363,7 @@ function CreateFarm(props: any) {
           await approvalTx.wait();
           launchFarm()
         } catch (e) {
+          togglePendingTx(false)
           console.error(e);
         }
       } else if (
@@ -693,7 +697,7 @@ function CreateFarm(props: any) {
           <Stack alignItems="center" direction="row" spacing={3} justifyContent="space-evenly">
             <Button
               fullWidth
-              onClick={() => window.open(`https://mumbai.polygonscan.com/tx/${txnHash}`, '_blank')}
+              onClick={() => window.open(`https://polygonscan.com/tx/${txnHash}`, '_blank')}
               sx={{
                 background: '#282D3D',
                 color: '#ffffff',
@@ -705,7 +709,7 @@ function CreateFarm(props: any) {
                 fontWeight: '700',
               }}
             >
-              View Transcation
+              View Transaction
             </Button>
             <Button
               fullWidth
@@ -937,7 +941,7 @@ function CreateFarm(props: any) {
                           feeManagerDetails.decimals
                         )
                       ).toFixed(3)
-                    }{" "} in {feeManagerDetails.symbol} This is to prevent spam.
+                    }{" "} in {feeManagerDetails.symbol}. This is to prevent spam.
                   </FeeSubtitle>
                 </FeeTitle>
               </FeesContainer>

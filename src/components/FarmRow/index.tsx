@@ -451,12 +451,11 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
           );
       }
       const cakeRewardPerBlock = new BigNumber(farm.rewardToken.rewardsPerToken.toString()).dividedBy(10 ** parseFloat(farm.rewardToken.decimal));
-      liquidityUsd = liquidityUsd.multipliedBy(farm.totalInputTokensStaked).dividedBy(10 ** 18);
       const denominator = new BigNumber(
         liquidityUsd
       ).isGreaterThan(0)
         ? liquidityUsd
-        : new BigNumber(1).dividedBy(10**18);
+        : new BigNumber(1).dividedBy(10 ** 18);
 
       const calculatedAPY = new BigNumber(rewardTokenPrice)
         .multipliedBy(SECONDS_PER_YEAR)
