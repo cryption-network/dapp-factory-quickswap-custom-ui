@@ -714,6 +714,10 @@ function CreateFarm(props: any) {
                 borderRadius: '10px',
                 fontFamily: 'Inter',
                 fontWeight: '700',
+                '&:hover': {
+                  background: '#EBECF2',
+                  color: '#1C1E29',
+                },
               }}
             >
               Go Home
@@ -817,7 +821,7 @@ function CreateFarm(props: any) {
                       <img src={farmData.inputToken1.logoURI} alt="CNT" width="28px" height="28px" style={{ objectFit: 'contain' }} />
                     </Stack>
                     <Stack>
-                      <TokenTitle style={{ fontSize: '18px', textAlign: 'center' }}>
+                      <TokenTitle style={{ fontSize: '16px', textAlign: 'center' }}>
                         Pair: {farmData.inputToken.address}
                       </TokenTitle>
                       <TokenTitle style={{ color: '#448aff', textAlign: 'center', fontSize: '16px' }}>
@@ -890,7 +894,7 @@ function CreateFarm(props: any) {
                 type="number" id="outlined-basic"
                 placeholder="Reward Amount"
                 variant="outlined" />
-              {farmData.minRewardAmount && farmData.minRewardAmount > parseFloat(farmData.amount) ? <SubTitle style={{ fontSize: '12px', color: '#696C80', marginTop: '10px' }}>*Min. Reward amount  Should be {farmData.minRewardAmount} {farmData.rewardToken.symbol}  ( $ {MIN_REWARDS} )</SubTitle> : <></>}
+              <SubTitle style={{ fontSize: '12px', color: '#696C80', marginTop: '10px' }}>*Min. Reward amount  Should be $ {MIN_REWARDS} {farmData.rewardToken.symbol && parseFloat(farmData.minRewardAmount) > 0 && `( ${farmData.minRewardAmount} ${farmData.rewardToken.symbol} )`}</SubTitle>
             </div>
             <div>
               <Stack direction="row" alignItems="center">
@@ -978,7 +982,7 @@ function CreateFarm(props: any) {
                 {pendingTxn ? 'Processing...' : 'Create Farm'}
               </Button>
             </Stack>
-            {parseFloat(farmData.rewardsPerMonth) > parseFloat(farmData.amount) && <SubTitle style={{ fontSize: '12px', color: '#696C80', marginTop: '10px', textAlign: 'center' }}>*Min. Rewards Per Month Should be  {farmData.rewardsPerMonth} {farmData.rewardToken.symbol}  ( ${MIN_REWARDS_PER_MONTH} )</SubTitle>}
+            <SubTitle style={{ fontSize: '12px', color: '#696C80', marginTop: '10px', textAlign: 'center' }}>*Min. Rewards Per Month Should be ${MIN_REWARDS_PER_MONTH}   {farmData.rewardToken.symbol && parseFloat(farmData.rewardsPerMonth) > 0 && `( ${farmData.rewardsPerMonth} ${farmData.rewardToken.symbol} )`}</SubTitle>
           </Card>
         </Stack >
       </Container >
