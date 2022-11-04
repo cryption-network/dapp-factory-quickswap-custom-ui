@@ -291,9 +291,11 @@ function CreateFarm(props: any) {
       );
       const routerAddress = getRouterAddress(chainId || 80001)
       try {
-        await launchFarmOrPool(rewardToken, inputToken, "", 0, 0, "0", "0", "", "0", routerAddress, rewardTokenAmountWei, null, 0, differenceInSecondsForRewardDuration, null, 1, true);
+        const resp = await launchFarmOrPool(rewardToken, inputToken, "", 0, 0, "0", "0", "", "0", routerAddress, rewardTokenAmountWei, null, 0, differenceInSecondsForRewardDuration, null, 1, false, 0,"", "", "", true);
         togglePendingTx(false)
-        toggleSuccessModal(true)
+        if (!resp.isError) {
+          toggleSuccessModal(true)
+        }
       } catch (error) {
         toggleSuccessModal(false)
         togglePendingTx(false)
@@ -662,7 +664,7 @@ function CreateFarm(props: any) {
           clientName: "tokenprice",
         },
       });
-      if (ethPrcie.data && ethPrcie.data.bundles && ethPrcie.data.bundles.length>0){
+      if (ethPrcie.data && ethPrcie.data.bundles && ethPrcie.data.bundles.length > 0) {
         setEthPrice(ethPrcie.data.bundles[0].ethPrice)
       }
     }
