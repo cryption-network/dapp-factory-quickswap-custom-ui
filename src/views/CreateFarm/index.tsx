@@ -363,6 +363,7 @@ function CreateFarm(props: any) {
           await approvalTx.wait();
           launchFarm()
         } catch (e) {
+          toggleSuccessModal(false)
           togglePendingTx(false)
           console.error(e);
         }
@@ -372,6 +373,7 @@ function CreateFarm(props: any) {
         launchFarm()
       }
     } catch (error) {
+      toggleSuccessModal(false)
       togglePendingTx(false)
       console.error(error);
     }
