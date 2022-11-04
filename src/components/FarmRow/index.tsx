@@ -215,8 +215,8 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
     return getFullDisplayBalance(new BigNumber(farm.tokenBalance), 18);
   }, [farm.tokenBalance]);
   const stakedBalance = useMemo(() => {
-    return getFullDisplayBalance(new BigNumber(farm.stakedBalance), Number(farm.rewardToken.decimal));
-  }, [farm.rewardToken.decimal, farm.stakedBalance]);
+    return getFullDisplayBalance(new BigNumber(farm.stakedBalance), 18);
+  }, [farm.stakedBalance]);
   const earned = getBalanceNumber(
     farm?.earnings ? new BigNumber(farm.earnings) : new BigNumber("0")
   );
@@ -227,8 +227,9 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
     [setDepositVal]
   );
   const handleSelectMax = useCallback(() => {
-    setDepositVal(fullBalance);
-  }, [fullBalance, setDepositVal]);
+    const bal = getBalanceNumber(new BigNumber(farm.tokenBalance), 18)
+    setDepositVal(bal.toString());
+  }, [farm.tokenBalance]);
   const handleWithdrawChange = useCallback(
     (e: React.FormEvent<HTMLInputElement>) => {
       setWithdrawVal(e.currentTarget.value);
@@ -236,8 +237,9 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
     [setWithdrawVal]
   );
   const handleSelectMaxForWithdraw = useCallback(() => {
-    setWithdrawVal(stakedBalance);
-  }, [stakedBalance, setWithdrawVal]);
+    const bal = getBalanceNumber(new BigNumber(farm.stakedBalance), 18)
+    setWithdrawVal(bal.toString());
+  }, [farm.stakedBalance]);
   const handleApprove = async () => {
     try {
       setApprovalLoading(true);

@@ -222,7 +222,7 @@ function CreateFarm(props: any) {
   });
   const [farmData, setFarmData] = useState({
     amount: "",
-    rewardDuration: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+    rewardDuration: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     minRewardAmount: 0,
     rewardsPerMonth: 0,
     feeAddress: "",
@@ -662,7 +662,7 @@ function CreateFarm(props: any) {
     checkMinimumRewards()
   }, [farmData.rewardDuration, farmData.rewardToken])
   let disabledButton = true;
-  if (farmData.inputToken.address.length > 0 && farmData.rewardToken.address.length > 0 && parseFloat(farmData.amount) > 0 && parseFloat(farmData.minRewardAmount) <= parseFloat(farmData.amount) && parseFloat(farmData.rewardsPerMonth) <= parseFloat(farmData.amount)) {
+  if (farmData.inputToken.address.length > 0 && farmData.rewardToken.address.length > 0 && parseFloat(farmData.amount) > 0 && parseFloat(farmData.rewardsPerMonth) <= parseFloat(farmData.amount)) {
     if (feeManagerDetails.isFeeManagerEnabled && new BigNumber(feeManagerDetails.feeTokenAllowance).isGreaterThanOrEqualTo(new BigNumber(feeManagerDetails.feeAmount))) {
       disabledButton = false
     } else if (feeManagerDetails.isFeeManagerEnabled && new BigNumber(feeManagerDetails.feeTokenAllowance).isLessThan(new BigNumber(feeManagerDetails.feeAmount))) {
@@ -894,7 +894,7 @@ function CreateFarm(props: any) {
                 type="number" id="outlined-basic"
                 placeholder="Reward Amount"
                 variant="outlined" />
-              <SubTitle style={{ fontSize: '12px', color: '#696C80', marginTop: '10px' }}>*Min. Reward amount  Should be $ {MIN_REWARDS} {farmData.rewardToken.symbol && parseFloat(farmData.minRewardAmount) > 0 && `( ${farmData.minRewardAmount} ${farmData.rewardToken.symbol} )`}</SubTitle>
+              {/* <SubTitle style={{ fontSize: '12px', color: '#696C80', marginTop: '10px' }}>*Min. Reward amount  Should be $ {MIN_REWARDS} {farmData.rewardToken.symbol && parseFloat(farmData.minRewardAmount) > 0 && `( ${farmData.minRewardAmount} ${farmData.rewardToken.symbol} )`}</SubTitle> */}
             </div>
             <div>
               <Stack direction="row" alignItems="center">
@@ -906,7 +906,7 @@ function CreateFarm(props: any) {
                   selected={formatUTC(farmData.rewardDuration, true)}
                   wrapperClassName="display-flex"
                   showTimeSelect
-                  minDate={new Date(Date.now())}
+                  minDate={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)}
                   timeFormat="HH:mm"
                   timeIntervals={15}
                   dateFormat="dd/MM/yyyy HH:mm"
@@ -919,6 +919,7 @@ function CreateFarm(props: any) {
                   customInput={<ExampleCustomInput />}
                 />
               </InputWrapper>
+              <SubTitle style={{ fontSize: '12px', color: '#696C80', marginTop: '10px', textAlign: 'center' }}>*Min. Rewards Per Month Should be ${MIN_REWARDS_PER_MONTH}   {farmData.rewardToken.symbol && parseFloat(farmData.rewardsPerMonth) > 0 && `( ${farmData.rewardsPerMonth} ${farmData.rewardToken.symbol} )`}</SubTitle>
             </div>
             {feeManagerDetails.isFeeManagerEnabled &&
               <FeesContainer>
@@ -982,7 +983,6 @@ function CreateFarm(props: any) {
                 {pendingTxn ? 'Processing...' : 'Create Farm'}
               </Button>
             </Stack>
-            <SubTitle style={{ fontSize: '12px', color: '#696C80', marginTop: '10px', textAlign: 'center' }}>*Min. Rewards Per Month Should be ${MIN_REWARDS_PER_MONTH}   {farmData.rewardToken.symbol && parseFloat(farmData.rewardsPerMonth) > 0 && `( ${farmData.rewardsPerMonth} ${farmData.rewardToken.symbol} )`}</SubTitle>
           </Card>
         </Stack >
       </Container >
