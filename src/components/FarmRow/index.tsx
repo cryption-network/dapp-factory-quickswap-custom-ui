@@ -421,9 +421,10 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
       }
       if (rewardTokens.data && rewardTokens.data.tokens && rewardTokens.data.tokens.length > 0) {
         rewardTokenPrice = new BigNumber(rewardTokens.data.tokens[0].derivedETH).multipliedBy(ethPrice).toFixed(4).toString();
-        if (parseFloat(rewardTokenPrice) <= 0) {
+        if (parseFloat(rewardTokenPrice) < 0 || parseFloat(rewardTokenPrice) === 0) {
           rewardTokenPrice = await getCoinGeckoPrice(farm.rewardToken.symbol.toLowerCase(), farm.rewardToken.name, coingeckoids);
         }
+      } else {
         rewardTokenPrice = await getCoinGeckoPrice(farm.rewardToken.symbol.toLowerCase(), farm.rewardToken.name, coingeckoids);
       }
       let liquidityUsd = new BigNumber(token0PriceInUSD)
@@ -456,7 +457,6 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
       ).isGreaterThan(0)
         ? liquidityUsd
         : new BigNumber(1).dividedBy(10 ** 18);
-
       const calculatedAPY = new BigNumber(rewardTokenPrice)
         .multipliedBy(SECONDS_PER_YEAR)
         .multipliedBy(cakeRewardPerBlock)
