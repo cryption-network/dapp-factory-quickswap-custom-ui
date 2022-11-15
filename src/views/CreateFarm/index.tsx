@@ -202,6 +202,7 @@ function CreateFarm(props: any) {
   const web3 = useWeb3();
   const [isValidPair, toggleValidPairAddress] = useState(null);
   const [tokens, setTokens] = useState([]);
+  const [rewardTokens, setRewardTokens] = useState([]);
   const [pendingTxn, togglePendingTx] = useState(false);
   const [ethPrice, setEthPrice] = useState("0");
   const [pendingApproveTxn, togglePendingApproveTx] = useState(false);
@@ -628,6 +629,8 @@ function CreateFarm(props: any) {
           ]
         }
         setTokens(getTokensForChain)
+        const filteredRewardTokens = getTokensForChain.filter(eachToken => eachToken.chainId === chainId && eachToken.decimals === 18)
+        setRewardTokens(filteredRewardTokens)
       }
     }
     const checkfee = async () => {
@@ -756,7 +759,7 @@ function CreateFarm(props: any) {
           }}
           onDismiss={() => toggleInputtoken1Modal(false)}
         />
-        <TokenList tokens={tokens} selectedCurrency={farmData.rewardToken} isOpen={showRewardTokenModal}
+        <TokenList tokens={rewardTokens} selectedCurrency={farmData.rewardToken} isOpen={showRewardTokenModal}
           onSelect={(token) => {
             toggleRewardTokenModal(false);
             selectToken(token, 'rewardToken')
