@@ -11,7 +11,7 @@ import Box from "@mui/material/Box";
 import { Button, Stack } from '@mui/material';
 import {
   fetchFarms
-} from "@cryption/dapp-factory-sdk";
+} from "@cryption/df-sdk-core";
 import { getApollo } from "../../apollo";
 import useActiveWeb3React from "../../hooks";
 import FarmRow from '../../components/FarmRow';
@@ -119,7 +119,7 @@ function Home(props: any) {
   };
   useEffect(() => {
     const getFarms = async () => {
-      const allFarms = await fetchFarms(chainId || 137, 1, [], account || undefined)
+      const allFarms = await fetchFarms(chainId || 137, 1, {}, account || undefined)
       if (allFarms.success) {
         const getTokens = await fetch(QUICKSWAP_TOKE_URL)
         const tokenList = await getTokens.json()
