@@ -10,7 +10,9 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Box from "@mui/material/Box";
 import { Button, Stack } from '@mui/material';
 import {
-  fetchFarms
+  fetchFarms,
+  IFarmRewardsData,
+  IFullFarm
 } from "@cryption/df-sdk-core";
 import { getApollo } from "../../apollo";
 import useActiveWeb3React from "../../hooks";
@@ -96,13 +98,13 @@ const StyledToggleButtonGroup = muiStyled(ToggleButtonGroup)(() => ({
 function Home(props: any) {
   const currentDate = Math.floor(new Date().getTime() / 1000);
   const { chainId, account } = useActiveWeb3React();
-  const [allFarms, setAllFarms] = useState<any>([]);
+  const [allFarms, setAllFarms] = useState<IFullFarm[] | IFarmRewardsData[] | []>([]);
   const [ethPrice, setEthPrice] = useState("0");
   const client = getApollo(chainId);
   const [coingeckoids, setCoingeckoids] = useState<any>([]);
-  const [activeFarms, setActiveFarms] = useState([]);
-  const [finishedFarms, setFinishedFarms] = useState([]);
-  const [stakedFarms, setStakedFarms] = useState([]);
+  const [activeFarms, setActiveFarms] = useState<IFullFarm[] | IFarmRewardsData[] | []>([]);
+  const [finishedFarms, setFinishedFarms] = useState<IFullFarm[] | IFarmRewardsData[] | []>([]);
+  const [stakedFarms, setStakedFarms] = useState<IFullFarm[] | IFarmRewardsData[] | []>([]);
   const [stakedOnly, setIsStake] = useState(false);
   const [alignment, setAlignment] = React.useState('active');
   // const getServiceId = (id: any) => {
@@ -189,10 +191,10 @@ function Home(props: any) {
   useEffect(() => {
     if (allFarms.length > 0) {
       const active = allFarms.filter(
-        (farm: { periodFinish: any; }) => farm.periodFinish && currentDate < Number(farm.periodFinish)
+        (farm: { periodFinish?: any; }) => farm.periodFinish && currentDate < Number(farm.periodFinish)
       );
       const finished = allFarms.filter(
-        (farm: { isquickswapSingleReward: any; rewardToken: { rewardBalInFarm: any; }; }) => parseFloat(farm.rewardToken.rewardBalInFarm) <= 0
+        (farm: { rewardToken: { rewardBalInFarm?: any; }; }) => parseFloat(farm.rewardToken.rewardBalInFarm) <= 0
       );
 
       const staked = allFarms.filter((farm: { stakedBalance: BigNumber.Value; }) =>

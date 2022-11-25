@@ -7,7 +7,7 @@
     "@arkane-network/arkane-connect": "^1.28.0-develop.0",
     "@arkane-network/web3-arkane-provider": "^0.23.0",
     "@cryption/dapp-factory-sdk": "0.5.15",
-    "@cryption/df-sdk-core": "0.0.3",
+    "@cryption/df-sdk-core": "0.0.8",
     "@emotion/react": "^11.10.0",
     "@emotion/styled": "^11.10.0",
     "@ethersproject/providers": "^5.4.5",

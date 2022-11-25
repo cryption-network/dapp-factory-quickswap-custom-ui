@@ -1621,10 +1621,10 @@
     tslib "^2.3.1"
     web3 "^1.7.4"
 
-"@cryption/df-sdk-core@0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@cryption/df-sdk-core/-/df-sdk-core-0.0.3.tgz#a474d4723a3cf976576d423ddb046776f26127c1"
-  integrity sha512-vDHK05B41DNraad7w3qx1flWEh6OgA+Xved7aE60aMefJ1Uhg1VzLrWMsnHxARQp0ZZfWFUwQT9tqgoXUzJr6w==
+"@cryption/df-sdk-core@0.0.8":
+  version "0.0.8"
+  resolved "https://registry.yarnpkg.com/@cryption/df-sdk-core/-/df-sdk-core-0.0.8.tgz#da65e17409b34cc1a99353522f40db0fe1682068"
+  integrity sha512-TkqYBQqojKPPUrH61RA7GQn9eMrA6pAnKP7aIBgLY55IE++FepoZBQVIDM/DEKziEmMIunDnVwrX3+4CpJ1rEQ==
   dependencies:
     "@apollo/client" "^3.6.8"
     "@ethersproject/experimental" "^5.4.0"
