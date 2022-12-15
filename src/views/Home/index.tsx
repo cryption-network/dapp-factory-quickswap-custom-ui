@@ -178,6 +178,7 @@ function Home(props: any) {
               return eachFarm;
             }
           })
+          console.log({ filteredFarms })
           setAllFarms(filteredFarms)
         }
       }
@@ -194,7 +195,7 @@ function Home(props: any) {
         (farm: { periodFinish?: any; }) => farm.periodFinish && currentDate < Number(farm.periodFinish)
       );
       const finished = allFarms.filter(
-        (farm: { rewardToken: { rewardBalInFarm?: any; }; }) => parseFloat(farm.rewardToken.rewardBalInFarm) <= 0
+        (farm: { periodFinish?: any; rewardToken: { rewardBalInFarm?: any }; }) => parseFloat(farm.rewardToken.rewardBalInFarm) <= 0 || currentDate > Number(farm.periodFinish)
       );
 
       const staked = allFarms.filter((farm: { stakedBalance: BigNumber.Value; }) =>
