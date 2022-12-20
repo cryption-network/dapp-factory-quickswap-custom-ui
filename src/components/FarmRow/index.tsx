@@ -5,6 +5,7 @@ import {
   Button,
 } from "cryption-uikit-v2";
 import React, { useState, useMemo, useEffect, useCallback, forwardRef } from "react";
+import Avatar from '@mui/material/Avatar';
 import { Stack, TextField, Grid } from '@mui/material';
 import { ethers, Contract } from "ethers";
 import { styled as muiStyled } from '@mui/material/styles';
@@ -187,7 +188,6 @@ interface IFarmCard {
 export default function FarmRow({ farm, account, getServiceId, customgradient, customPrimaryColor, chainId, coingeckoids, ethPrice }: IFarmCard) {
   const quickswapSingleReward = useQuickswapSingleRewardContract(farm.id);
   const [approvalLoading, setApprovalLoading] = useState(false);
-  const [isToken0ImgExists, setToken0ImgStatus] = useState(true);
   const [notifyRewardData, setNotifyReward] = useState({
     amount: "",
     startTime: new Date(parseFloat(farm.periodFinish) * 1000),
@@ -202,11 +202,8 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
   const [depositVal, setDepositVal] = useState("");
   const [withdrawVal, setWithdrawVal] = useState("");
   const [pendingNotifyRewardsTx, setPendingNotifyRewardsTx] = useState(false);
-  const [isSingleLpImg, setIsSingleLpImg] = useState(false);
-  const [isToken1ImgExists, setToken1ImgStatus] = useState(true);
   const [token0Img, setToken0Img] = useState("");
   const [token1Img, setToken1Img] = useState("");
-  const [isRewardImgExists, setRewardImgStatus] = useState(true);
   const [liquidity, setLiquidity] = useState(new BigNumber(0));
   const [isExpandCard, setExpandCard] = useState(false);
   const [apy, setApy] = useState(new BigNumber(0));
@@ -481,46 +478,20 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
         const checkIfExits = farm.inputTokenURL.includes(LP_IMAGE_SEPERATOR_STRING);
         if (checkIfExits) {
           const images = farm.inputTokenURL.split(LP_IMAGE_SEPERATOR_STRING)
-          setIsSingleLpImg(true)
-          try {
-            await fetch(images[0]);
+          if (images[0]) {
             setToken0Img(images[0])
           }
-          catch (error) {
-            setToken0ImgStatus(false);
-          }
-          try {
-            await fetch(images[1]);
+          if (images[1]) {
             setToken1Img(images[1])
           }
-          catch (error) {
-            setToken1ImgStatus(false);
-          }
         } else {
-          try {
-            const token0ImgLink = farm.inputTokenURL;
-            if (token0ImgLink && token0ImgLink.length > 0) {
-              await fetch(token0ImgLink);
-              setToken0Img(token0ImgLink);
-            } else {
-              setToken0ImgStatus(false);
-            }
-          } catch (error) {
-            setToken0ImgStatus(false);
+          const token0ImgLink = farm.inputTokenURL;
+          if (token0ImgLink && token0ImgLink.length > 0) {
+            setToken0Img(token0ImgLink);
           }
         }
       } catch (error) {
         console.error(error);
-      }
-
-      if (farm.rewardToken && farm.rewardToken.rewardTokenURL) {
-        try {
-          await fetch(farm.rewardToken.rewardTokenURL);
-        } catch (error) {
-          setRewardImgStatus(false);
-        }
-      } else {
-        setRewardImgStatus(false);
       }
     };
     checkIfImgExists();
@@ -536,26 +507,25 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
         <Box width={0.3} style={{ paddingLeft: '16px' }}>
           <Flex alignItems="center">
             <Flex style={{ position: 'relative', marginRight: "15px" }}>
-              {isToken0ImgExists ? (
-                <img
+              {token0Img &&
+                <Avatar
+                  alt="Remy Sharp"
                   src={token0Img}
-                  alt={farm.token0Data.symbol}
-                  width="30px"
-                  height="30px"
-                />
-              ) : (
-                <ImageContainer>
-                  <HelpOutlineIcon />
-                </ImageContainer>
-              )}
-              {isSingleLpImg && isToken1ImgExists &&
-                <img
+                >
+                  <ImageContainer>
+                    <HelpOutlineIcon />
+                  </ImageContainer>
+                </Avatar>
+              }
+              {token1Img &&
+                <Avatar
+                  alt="Remy Sharp"
                   src={token1Img}
-                  style={{ position: 'absolute', left: '20px' }}
-                  alt={farm.token0Data.symbol}
-                  width="30px"
-                  height="30px"
-                />
+                >
+                  <ImageContainer>
+                    <HelpOutlineIcon />
+                  </ImageContainer>
+                </Avatar>
               }
             </Flex>
             <Box ml={1.5}>
@@ -591,18 +561,14 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
               {earned.toLocaleString()}
             </Text>
             <Flex alignItems="center">
-              {isRewardImgExists ? (
-                <img
-                  src={farm.rewardToken.rewardTokenURL}
-                  alt={farm.rewardToken.symbol}
-                  width="16px"
-                  height="16px"
-                />
-              ) : (
+              <Avatar
+                alt="Remy Sharp"
+                src={farm.rewardToken.rewardTokenURL}
+              >
                 <ImageContainer>
                   <HelpOutlineIcon />
                 </ImageContainer>
-              )}
+              </Avatar>
               <Text fontSize="14px" color="gray" ml="10px" fontFamily="Inter">
                 {farm.rewardToken.symbol}
               </Text>
