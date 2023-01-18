@@ -639,7 +639,7 @@ export default function FarmRow({ farm, account, getServiceId, customgradient, c
               <Text color="gray" fontWeight="500" mb="10px" fontFamily="Inter">
                 Unclaimed Rewards:
               </Text>
-              {isRewardImgExists ? (
+              {farm.rewardToken.rewardTokenURL && farm.rewardToken.rewardTokenURL.length > 0 ? (
                 <img
                   src={farm.rewardToken.rewardTokenURL}
                   alt={farm.rewardToken.symbol}
